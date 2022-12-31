@@ -2,11 +2,11 @@ import * as cdk from "aws-cdk-lib";
 import { BetaStageConfig, ProdStageConfig } from "./lib/constants";
 import { StageConfig } from "./lib/constants";
 import {
-    DataIngestionStack,
-    DataIngestionStackProps,
-} from "./lib/stacks/data_ingestion_stack";
+    PsIngestionStack,
+    PsIngestionStackProps,
+} from "./lib/stacks/ps_ingestion_stack";
 
-export class BabiriV2InfrastructureApp extends cdk.App {
+export class StatsugiriInfrastructureApp extends cdk.App {
     public setupBeta() {
         const stage = this.createBetaStage();
         return this;
@@ -23,7 +23,7 @@ export class BabiriV2InfrastructureApp extends cdk.App {
      */
     private createBetaStage() {
         let betaStacks = new Array<cdk.Stack>();
-        betaStacks.push(this.setupDataIngestionStack(BetaStageConfig));
+        betaStacks.push(this.setupPsIngestionStack(BetaStageConfig));
     }
 
     /**
@@ -32,19 +32,20 @@ export class BabiriV2InfrastructureApp extends cdk.App {
      */
     private createProdStage() {
         let prodStacks = new Array<cdk.Stack>();
-        prodStacks.push(this.setupDataIngestionStack(ProdStageConfig));
+        prodStacks.push(this.setupPsIngestionStack(ProdStageConfig));
     }
 
-    private setupDataIngestionStack(stageConfig: StageConfig) {
-        const dataIngestionStackProps: DataIngestionStackProps = {
-            stageName: stageConfig.stageName,
+    private setupPsIngestionStack(stageConfig: StageConfig) {
+        const psIngestionStackProps: PsIngestionStackProps = {
+            stageConfig: stageConfig,
         };
-        return new DataIngestionStack(
+
+        return new PsIngestionStack(
             this,
-            `DataIngestionStack-${stageConfig.stageName}`,
-            dataIngestionStackProps
+            `PsIngestionStack-${stageConfig.stageName}`,
+            psIngestionStackProps
         );
     }
 }
 
-new BabiriV2InfrastructureApp().setupBeta().setupProd().synth();
+new StatsugiriInfrastructureApp().setupBeta().setupProd().synth();
