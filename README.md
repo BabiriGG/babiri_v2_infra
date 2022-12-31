@@ -18,8 +18,20 @@ Elastic Container Registry (ECR) repositories must be created with an available 
 | --------------------- | --------------------- |
 | `ps_ingestion_lambda` | `ps-ingestion-lambda` |
 
+#### Create Secrets Manager Store
+
+Push sensitive credentials (eg. Twitter Access Tokens) to Secrets Manager.
+
+| Secret Name             | Secret Value                  |
+| ----------------------- | ----------------------------- |
+| `OrderUp-Twitter-Creds` | `TWITTER_ACCESS_TOKEN`        |
+| `---`                   | `TWITTER_ACCESS_TOKEN_SECRET` |
+| `---`                   | `TWITTER_API_KEY`             |
+| `---`                   | `TWITTER_API_KEY_SECRET`      |
+
 ### Deployment
 
 -   `npm run build` to compile package
 -   `cdk synth` to view synthesized CloudFormation template
--   `cdk deploy` to deploy stack to assumed AWS account
+-   `cdk list` to list built stacks
+-   `cdk deploy <STACK>` to deploy stack to assumed AWS account
