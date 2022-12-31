@@ -1,9 +1,8 @@
 import { aws_lambda as lambda } from "aws-cdk-lib";
+import { aws_ecr as ecr } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { RetentionDays } from "aws-cdk-lib/aws-logs";
 import { Duration } from "aws-cdk-lib";
-import { aws_ecr as ecr } from "aws-cdk-lib";
-import { POINT_CONVERSION_COMPRESSED } from "constants";
 
 export interface TwitterAccessCredentials {
     readonly twitterAccessToken: string;
