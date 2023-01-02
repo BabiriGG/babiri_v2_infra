@@ -1,6 +1,8 @@
 export const BETA_STAGE = "Beta";
 export const PROD_STAGE = "Prod";
 
+export const VGC_FORMAT = "gen9vgc2023series1";
+
 export const PS_INGESTION_LAMBDA_ECR_REPO = "ps-ingestion-lambda";
 
 export const ORDERUP_TWITTER_CREDS = "OrderUp-Twitter-Creds";
