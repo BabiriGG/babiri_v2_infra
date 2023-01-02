@@ -19,10 +19,10 @@ export class PsIngestionEventBridge extends Construct {
             `PsIngestionEventBridge-${props.stageName}`,
             {
                 // Cron Expressions only available in UTC
-                // 10 AM UTC everyday
+                // 9 AM UTC everyday
                 schedule: Schedule.cron({
                     minute: "0",
-                    hour: "10",
+                    hour: "9",
                 }),
             }
         );
