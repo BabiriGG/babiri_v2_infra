@@ -3,6 +3,7 @@ import { aws_ecr as ecr } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { RetentionDays } from "aws-cdk-lib/aws-logs";
 import { Duration } from "aws-cdk-lib";
+import { IFunction } from "aws-cdk-lib/aws-lambda";
 
 export interface TwitterAccessCredentials {
     readonly twitterAccessToken: string;
@@ -19,10 +20,12 @@ export interface PsIngestionLambdaProps {
 }
 
 export class PsIngestionLambda extends Construct {
+    readonly lambdaFunction: IFunction;
+
     constructor(scope: Construct, id: string, props: PsIngestionLambdaProps) {
         super(scope, id);
 
-        new lambda.DockerImageFunction(
+        this.lambdaFunction = new lambda.DockerImageFunction(
             this,
             `PsIngestionLambda-${props.stageName}`,
             {

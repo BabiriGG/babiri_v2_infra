@@ -4,7 +4,7 @@ import { StageConfig } from "./lib/constants";
 import {
     PsIngestionStack,
     PsIngestionStackProps,
-} from "./lib/stacks/ps_ingestion_stack";
+} from "./lib/stacks/ps-ingestion-stack";
 
 export class StatsugiriInfrastructureApp extends cdk.App {
     public setupBeta() {

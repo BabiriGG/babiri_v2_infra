@@ -1,8 +1,8 @@
 {
-    "name": "babiri_v2_infra",
+    "name": "statsugiri_infra",
     "version": "0.1.0",
     "bin": {
-        "babiri_v2_infra": "bin/babiri_v2_infra.js"
+        "statsugiri_infra": "bin/statsugiri_infra.js"
     },
     "scripts": {
         "build": "tsc",
