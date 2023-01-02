@@ -12,7 +12,7 @@ import {
     StageConfig,
     VGC_FORMAT,
     PS_INGESTION_LAMBDA_ECR_REPO,
-    ORDERUP_TWITTER_CREDS,
+    ORDERUP_TWITTER_CREDS_SECRETS,
     TWITTER_ACCESS_TOKEN_NAME,
     TWITTER_ACCESS_TOKEN_SECRET_NAME,
     TWITTER_API_KEY_NAME,
@@ -20,7 +20,6 @@ import {
     PROD_TWITTER_DISPLAY_NAME,
     DEV_TWITTER_DISPLAY_NAME,
 } from "../constants";
-import { TargetTrackingScalingPolicy } from "aws-cdk-lib/aws-applicationautoscaling";
 
 export interface PsIngestionStackProps extends cdk.StackProps {
     stageConfig: StageConfig;
@@ -40,7 +39,7 @@ export class PsIngestionStack extends cdk.Stack {
         const orderUpTwitterCreds = Secret.fromSecretNameV2(
             this,
             `OrderUpTwitterCreds-${props.stageConfig.stageName}`,
-            ORDERUP_TWITTER_CREDS
+            `${ORDERUP_TWITTER_CREDS_SECRETS}-${props.stageConfig.stageName}`
         );
 
         const eventBridge = new PsIngestionEventBridge(

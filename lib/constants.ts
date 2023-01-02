@@ -4,8 +4,10 @@ export const PROD_STAGE = "Prod";
 export const VGC_FORMAT = "gen9vgc2023series1";
 
 export const PS_INGESTION_LAMBDA_ECR_REPO = "ps-ingestion-lambda";
+export const ECR_IMAGE_TAG_PROD = "prod";
+export const ECR_IMAGE_TAG_DEV = "latest";
 
-export const ORDERUP_TWITTER_CREDS = "OrderUp-Twitter-Creds";
+export const ORDERUP_TWITTER_CREDS_SECRETS = "OrderUp-Twitter-Creds";
 export const TWITTER_ACCESS_TOKEN_NAME = "TWITTER_ACCESS_TOKEN";
 export const TWITTER_ACCESS_TOKEN_SECRET_NAME = "TWITTER_ACCESS_TOKEN_SECRET";
 export const TWITTER_API_KEY_NAME = "TWITTER_API_KEY";

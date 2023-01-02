@@ -4,6 +4,7 @@ import { Construct } from "constructs";
 import { RetentionDays } from "aws-cdk-lib/aws-logs";
 import { Duration } from "aws-cdk-lib";
 import { IFunction } from "aws-cdk-lib/aws-lambda";
+import { PROD_STAGE } from "../../constants";
 
 export interface TwitterAccessCredentials {
     readonly twitterAccessToken: string;
@@ -30,10 +31,12 @@ export class PsIngestionLambda extends Construct {
             `PsIngestionLambda-${props.stageName}`,
             {
                 functionName: `PsIngestionLambda-${props.stageName}`,
-                description:
-                    "Ingest and load data to DynamoDB and Twitter's OrderUpBot",
-                code: lambda.DockerImageCode.fromEcr(props.ecrRepo),
-                timeout: Duration.seconds(60),
+                description: "Ingest and load data to DynamoDB and OrderUpBot",
+                code: lambda.DockerImageCode.fromEcr(props.ecrRepo, {
+                    tagOrDigest:
+                        props.stageName == PROD_STAGE ? "prod" : "latest",
+                }),
+                timeout: Duration.minutes(10),
                 memorySize: 1024,
                 logRetention: RetentionDays.ONE_YEAR,
                 environment: {
