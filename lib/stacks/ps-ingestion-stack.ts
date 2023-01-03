@@ -80,9 +80,10 @@ export class PsIngestionStack extends cdk.Stack {
                 stageName: props.stageConfig.stageName,
             }
         );
+
         const emailTopic = new EmailSnsTopic(
             this,
-            `PsIngestionEmailTopic-${props.stageConfig.stageName}`,
+            `PsIngestionEmailSns-${props.stageConfig.stageName}`,
             {
                 serviceName: "PsIngestion",
                 email: STATSUGIRI_EMAIL,

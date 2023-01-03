@@ -16,7 +16,7 @@ export class EmailSnsTopic extends Construct {
 
         this.topic = new Topic(
             scope,
-            `${props.serviceName}EmailTopic-${props.stageName}`,
+            `${props.serviceName}Topic-${props.stageName}`,
             {
                 displayName: `${props.serviceName}EmailTopic-${props.stageName}`,
             }
