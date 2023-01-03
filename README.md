@@ -20,14 +20,14 @@ Elastic Container Registry (ECR) repositories must be created with an available 
 
 #### Create Secrets Manager Store
 
-Push sensitive credentials (eg. Twitter Access Tokens) to Secrets Manager.
+Push sensitive credentials (eg. Twitter Access Tokens) to Secrets Manager. `<STAGE>` can be either `Prod` or `Beta`.
 
-| Secret Name             | Secret Value                  |
-| ----------------------- | ----------------------------- |
-| `OrderUp-Twitter-Creds` | `TWITTER_ACCESS_TOKEN`        |
-| `---`                   | `TWITTER_ACCESS_TOKEN_SECRET` |
-| `---`                   | `TWITTER_API_KEY`             |
-| `---`                   | `TWITTER_API_KEY_SECRET`      |
+| Secret Name                     | Secret Value                  |
+| ------------------------------- | ----------------------------- |
+| `OrderUp-Twitter-Creds-<STAGE>` | `TWITTER_ACCESS_TOKEN`        |
+|                                 | `TWITTER_ACCESS_TOKEN_SECRET` |
+|                                 | `TWITTER_API_KEY`             |
+|                                 | `TWITTER_API_KEY_SECRET`      |
 
 ### Deployment
 

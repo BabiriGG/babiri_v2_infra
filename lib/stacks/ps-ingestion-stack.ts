@@ -3,15 +3,18 @@ import { Repository, IRepository } from "aws-cdk-lib/aws-ecr";
 import { Secret, ISecret } from "aws-cdk-lib/aws-secretsmanager";
 import { RuleTargetInput } from "aws-cdk-lib/aws-events";
 import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
+import { SnsAction } from "aws-cdk-lib/aws-cloudwatch-actions";
 import {
     PsIngestionLambda,
     TwitterAccessCredentials,
 } from "../infrastructure/lambda/ps-ingestion-lambda";
 import { PsIngestionEventBridge } from "../infrastructure/eventbridge/ps-ingestion-eventbridge";
+import { PsIngestionAlarms } from "../infrastructure/cloudwatch/ps-ingestion-alarms";
 import {
     StageConfig,
     VGC_FORMAT,
     PS_INGESTION_LAMBDA_ECR_REPO,
+    STATSUGIRI_EMAIL,
     ORDERUP_TWITTER_CREDS_SECRETS,
     TWITTER_ACCESS_TOKEN_NAME,
     TWITTER_ACCESS_TOKEN_SECRET_NAME,
@@ -20,6 +23,7 @@ import {
     PROD_TWITTER_DISPLAY_NAME,
     DEV_TWITTER_DISPLAY_NAME,
 } from "../constants";
+import { EmailSnsTopic } from "../infrastructure/sns/email-sns-topics";
 
 export interface PsIngestionStackProps extends cdk.StackProps {
     stageConfig: StageConfig;
@@ -67,6 +71,25 @@ export class PsIngestionStack extends cdk.Stack {
                 event: RuleTargetInput.fromObject({ format: VGC_FORMAT }),
             })
         );
+
+        const ingestionAlarm = new PsIngestionAlarms(
+            this,
+            `PsIngestionAlarms-${props.stageConfig.stageName}`,
+            {
+                psIngestionLamdba: ingestionLambda.lambdaFunction,
+                stageName: props.stageConfig.stageName,
+            }
+        );
+        const emailTopic = new EmailSnsTopic(
+            this,
+            `PsIngestionEmailTopic-${props.stageConfig.stageName}`,
+            {
+                serviceName: "PsIngestion",
+                email: STATSUGIRI_EMAIL,
+                stageName: props.stageConfig.stageName,
+            }
+        );
+        ingestionAlarm.alarm.addAlarmAction(new SnsAction(emailTopic.topic));
     }
 
     private getTwitterSecrets(
