@@ -7,6 +7,8 @@ export const PS_INGESTION_LAMBDA_ECR_REPO = "ps-ingestion-lambda";
 export const ECR_IMAGE_TAG_PROD = "prod";
 export const ECR_IMAGE_TAG_DEV = "latest";
 
+export const STATSUGIRI_EMAIL = "statsugiri@gmail.com";
+
 export const ORDERUP_TWITTER_CREDS_SECRETS = "OrderUp-Twitter-Creds";
 export const TWITTER_ACCESS_TOKEN_NAME = "TWITTER_ACCESS_TOKEN";
 export const TWITTER_ACCESS_TOKEN_SECRET_NAME = "TWITTER_ACCESS_TOKEN_SECRET";

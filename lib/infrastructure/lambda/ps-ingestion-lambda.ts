@@ -1,9 +1,12 @@
-import { aws_lambda as lambda } from "aws-cdk-lib";
-import { aws_ecr as ecr } from "aws-cdk-lib";
+import { Duration } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { RetentionDays } from "aws-cdk-lib/aws-logs";
-import { Duration } from "aws-cdk-lib";
-import { IFunction } from "aws-cdk-lib/aws-lambda";
+import { IRepository } from "aws-cdk-lib/aws-ecr";
+import {
+    DockerImageCode,
+    DockerImageFunction,
+    IFunction,
+} from "aws-cdk-lib/aws-lambda";
 import { PROD_STAGE } from "../../constants";
 
 export interface TwitterAccessCredentials {
@@ -15,7 +18,7 @@ export interface TwitterAccessCredentials {
 }
 
 export interface PsIngestionLambdaProps {
-    readonly ecrRepo: ecr.IRepository;
+    readonly ecrRepo: IRepository;
     readonly twitterAccessCredentials: TwitterAccessCredentials;
     readonly stageName: string;
 }
@@ -26,13 +29,13 @@ export class PsIngestionLambda extends Construct {
     constructor(scope: Construct, id: string, props: PsIngestionLambdaProps) {
         super(scope, id);
 
-        this.lambdaFunction = new lambda.DockerImageFunction(
+        this.lambdaFunction = new DockerImageFunction(
             this,
             `PsIngestionLambda-${props.stageName}`,
             {
                 functionName: `PsIngestionLambda-${props.stageName}`,
                 description: "Ingest and load data to DynamoDB and OrderUpBot",
-                code: lambda.DockerImageCode.fromEcr(props.ecrRepo, {
+                code: DockerImageCode.fromEcr(props.ecrRepo, {
                     tagOrDigest:
                         props.stageName == PROD_STAGE ? "prod" : "latest",
                 }),
