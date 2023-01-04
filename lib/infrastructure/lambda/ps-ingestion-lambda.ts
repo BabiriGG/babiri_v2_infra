@@ -7,7 +7,11 @@ import {
     DockerImageFunction,
     IFunction,
 } from "aws-cdk-lib/aws-lambda";
-import { PROD_STAGE } from "../../constants";
+import { PROD_STAGE } from "../../constants/stage-config";
+import {
+    DEFAULT_ECR_DEV_TAG,
+    PS_INGESTION_LAMBDA_ECR_PROD_TAG,
+} from "../../constants/ecr-constants";
 
 export interface TwitterAccessCredentials {
     readonly twitterAccessToken: string;
@@ -37,11 +41,13 @@ export class PsIngestionLambda extends Construct {
                 description: "Ingest and load data to DynamoDB and OrderUpBot",
                 code: DockerImageCode.fromEcr(props.ecrRepo, {
                     tagOrDigest:
-                        props.stageName == PROD_STAGE ? "prod" : "latest",
+                        props.stageName == PROD_STAGE
+                            ? PS_INGESTION_LAMBDA_ECR_PROD_TAG
+                            : DEFAULT_ECR_DEV_TAG,
                 }),
                 timeout: Duration.minutes(10),
                 memorySize: 1024,
-                logRetention: RetentionDays.ONE_YEAR,
+                logRetention: RetentionDays.ONE_MONTH,
                 environment: {
                     TWITTER_API_KEY:
                         props.twitterAccessCredentials.twitterApiKey,
