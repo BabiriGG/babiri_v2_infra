@@ -45,7 +45,7 @@ export class PsIngestionLambda extends Construct {
                             ? PS_INGESTION_LAMBDA_ECR_PROD_TAG
                             : DEFAULT_ECR_DEV_TAG,
                 }),
-                timeout: Duration.minutes(10),
+                timeout: Duration.minutes(12),
                 memorySize: 1024,
                 logRetention: RetentionDays.ONE_MONTH,
                 environment: {
