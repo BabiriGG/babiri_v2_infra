@@ -1,6 +1,9 @@
 import * as cdk from "aws-cdk-lib";
-import { BetaStageConfig, ProdStageConfig } from "./lib/constants";
-import { StageConfig } from "./lib/constants";
+import {
+    StageConfig,
+    BetaStageConfig,
+    ProdStageConfig,
+} from "./lib/constants/stage-config";
 import {
     PsIngestionStack,
     PsIngestionStackProps,

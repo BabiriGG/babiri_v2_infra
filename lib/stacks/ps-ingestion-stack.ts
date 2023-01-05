@@ -11,10 +11,6 @@ import {
 import { PsIngestionEventBridge } from "../infrastructure/eventbridge/ps-ingestion-eventbridge";
 import { PsIngestionAlarms } from "../infrastructure/cloudwatch/ps-ingestion-alarms";
 import {
-    StageConfig,
-    VGC_FORMAT,
-    PS_INGESTION_LAMBDA_ECR_REPO,
-    STATSUGIRI_EMAIL,
     ORDERUP_TWITTER_CREDS_SECRETS,
     TWITTER_ACCESS_TOKEN_NAME,
     TWITTER_ACCESS_TOKEN_SECRET_NAME,
@@ -22,7 +18,11 @@ import {
     TWITTER_API_KEY_SECRET_NAME,
     PROD_TWITTER_DISPLAY_NAME,
     DEV_TWITTER_DISPLAY_NAME,
-} from "../constants";
+} from "../constants/twitter-creds";
+import { StageConfig } from "../constants/stage-config";
+import { VGC_FORMAT } from "../constants/ps-constants";
+import { PS_INGESTION_LAMBDA_ECR_REPO } from "../constants/ecr-constants";
+import { STATSUGIRI_EMAIL } from "../constants/alarm-constants";
 import { EmailSnsTopic } from "../infrastructure/sns/email-sns-topics";
 
 export interface PsIngestionStackProps extends cdk.StackProps {

@@ -18,6 +18,10 @@ Elastic Container Registry (ECR) repositories must be created with an available 
 | --------------------- | --------------------- |
 | `ps_ingestion_lambda` | `ps-ingestion-lambda` |
 
+#### Configure ECR Image Tags to Deploy
+
+Specify the tag you wish to deploy in `Beta` and `Prod` in `constants/ecr-constants.ts`. The default `Beta` tag is `latest`.
+
 #### Create Secrets Manager Store
 
 Push sensitive credentials (eg. Twitter Access Tokens) to Secrets Manager. `<STAGE>` can be either `Prod` or `Beta`.
