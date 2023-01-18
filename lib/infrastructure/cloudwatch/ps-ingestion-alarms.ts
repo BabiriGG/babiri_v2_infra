@@ -1,10 +1,10 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { Alarm, ComparisonOperator } from "aws-cdk-lib/aws-cloudwatch";
-import { IFunction } from "aws-cdk-lib/aws-lambda";
+import { StateMachine } from "aws-cdk-lib/aws-stepfunctions";
 
 export interface PsIngestionAlarmsProps {
-    readonly psIngestionLamdba: IFunction;
+    readonly psIngestionStateMachine: StateMachine;
     readonly stageName: string;
 }
 
@@ -13,7 +13,7 @@ export class PsIngestionAlarms extends Construct {
 
     constructor(scope: Construct, id: string, props: PsIngestionAlarmsProps) {
         super(scope, id);
-        const functionErrors = props.psIngestionLamdba.metricErrors({
+        const functionErrors = props.psIngestionStateMachine.metricFailed({
             period: cdk.Duration.minutes(1),
         });
 

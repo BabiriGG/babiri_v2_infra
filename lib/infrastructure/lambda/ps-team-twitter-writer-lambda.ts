@@ -10,44 +10,41 @@ import {
 import { PROD_STAGE } from "../../constants/stage-config";
 import {
     DEFAULT_ECR_DEV_TAG,
-    PS_INGESTION_LAMBDA_ECR_PROD_TAG,
+    PS_TEAM_TWITTER_WRITER_LAMBDA_ECR_PROD_TAG,
 } from "../../constants/ecr-constants";
+import { TwitterAccessCredentials } from "../../constants/twitter-creds";
 
-export interface TwitterAccessCredentials {
-    readonly twitterAccessToken: string;
-    readonly twitterAccessTokenSecret: string;
-    readonly twitterApiKey: string;
-    readonly twitterApiKeySecret: string;
-    readonly twitterDisplayName: string;
-}
-
-export interface PsIngestionLambdaProps {
+export interface PsTeamTwitterWriterLambdaProps {
     readonly ecrRepo: IRepository;
-    readonly twitterAccessCredentials: TwitterAccessCredentials;
     readonly stageName: string;
+    readonly twitterAccessCredentials: TwitterAccessCredentials;
 }
 
-export class PsIngestionLambda extends Construct {
+export class PsTeamTwitterWriterLambda extends Construct {
     readonly lambdaFunction: IFunction;
 
-    constructor(scope: Construct, id: string, props: PsIngestionLambdaProps) {
+    constructor(
+        scope: Construct,
+        id: string,
+        props: PsTeamTwitterWriterLambdaProps
+    ) {
         super(scope, id);
 
         this.lambdaFunction = new DockerImageFunction(
             this,
-            `PsIngestionLambda-${props.stageName}`,
+            `PsTeamTwitterWriterLambda-${props.stageName}`,
             {
-                functionName: `PsIngestionLambda-${props.stageName}`,
-                description: "Ingest and load data to DynamoDB and OrderUpBot",
+                functionName: `PsTeamTwitterWriterLambda-${props.stageName}`,
+                description: "Write team information to Twitter",
                 code: DockerImageCode.fromEcr(props.ecrRepo, {
                     tagOrDigest:
                         props.stageName == PROD_STAGE
-                            ? PS_INGESTION_LAMBDA_ECR_PROD_TAG
+                            ? PS_TEAM_TWITTER_WRITER_LAMBDA_ECR_PROD_TAG
                             : DEFAULT_ECR_DEV_TAG,
                 }),
-                timeout: Duration.minutes(12),
+                timeout: Duration.minutes(2),
                 memorySize: 1024,
-                logRetention: RetentionDays.ONE_MONTH,
+                logRetention: RetentionDays.ONE_WEEK,
                 environment: {
                     TWITTER_API_KEY:
                         props.twitterAccessCredentials.twitterApiKey,

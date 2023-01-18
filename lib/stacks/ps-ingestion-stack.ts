@@ -1,13 +1,9 @@
 import * as cdk from "aws-cdk-lib";
-import { Repository, IRepository } from "aws-cdk-lib/aws-ecr";
 import { Secret, ISecret } from "aws-cdk-lib/aws-secretsmanager";
 import { RuleTargetInput } from "aws-cdk-lib/aws-events";
-import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
+import { SfnStateMachine } from "aws-cdk-lib/aws-events-targets";
 import { SnsAction } from "aws-cdk-lib/aws-cloudwatch-actions";
-import {
-    PsIngestionLambda,
-    TwitterAccessCredentials,
-} from "../infrastructure/lambda/ps-ingestion-lambda";
+import { PsReplayExtractionLambda } from "../infrastructure/lambda/ps-replay-extraction-lambda";
 import { PsIngestionEventBridge } from "../infrastructure/eventbridge/ps-ingestion-eventbridge";
 import { PsIngestionAlarms } from "../infrastructure/cloudwatch/ps-ingestion-alarms";
 import {
@@ -21,24 +17,23 @@ import {
 } from "../constants/twitter-creds";
 import { StageConfig } from "../constants/stage-config";
 import { VGC_FORMAT } from "../constants/ps-constants";
-import { PS_INGESTION_LAMBDA_ECR_REPO } from "../constants/ecr-constants";
 import { STATSUGIRI_EMAIL } from "../constants/alarm-constants";
+import { TwitterAccessCredentials } from "../constants/twitter-creds";
 import { EmailSnsTopic } from "../infrastructure/sns/email-sns-topics";
+import { PsReplayExtractionLambdaEcrRepo } from "../infrastructure/ecr/ps-replay-extraction-lambda-ecr-repo";
+import { PsReplayTransformLambdaEcrRepo } from "../infrastructure/ecr/ps-replay-transform-lambda-ecr-repo";
+import { PsTeamTwitterWriterLambdaEcrRepo } from "../infrastructure/ecr/ps-team-twitter-writer-lambda-ecr-repo";
+import { PsReplayTransformLambda } from "../infrastructure/lambda/ps-replay-transform-lambda";
+import { PsTeamTwitterWriterLambda } from "../infrastructure/lambda/ps-team-twitter-writer-lambda";
+import { PsIngestionStateMachine } from "../infrastructure/stepfunctions/ps-ingestion-state-machine";
 
 export interface PsIngestionStackProps extends cdk.StackProps {
     stageConfig: StageConfig;
 }
 
 export class PsIngestionStack extends cdk.Stack {
-    private ecrRepo: IRepository;
-
     constructor(scope: cdk.App, id: string, props: PsIngestionStackProps) {
         super(scope, id, props);
-        this.ecrRepo = Repository.fromRepositoryName(
-            this,
-            `PsIngestionLambdaEcrRepo-${props.stageConfig.stageName}`,
-            PS_INGESTION_LAMBDA_ECR_REPO
-        );
 
         const orderUpTwitterCreds = Secret.fromSecretNameV2(
             this,
@@ -46,29 +41,72 @@ export class PsIngestionStack extends cdk.Stack {
             `${ORDERUP_TWITTER_CREDS_SECRETS}-${props.stageConfig.stageName}`
         );
 
-        const eventBridge = new PsIngestionEventBridge(
+        const extractionEcrRepo = new PsReplayExtractionLambdaEcrRepo(
+            this,
+            `ExtractionLambdaEcrRepo-${props.stageConfig.stageName}`,
+            { stageName: props.stageConfig.stageName }
+        );
+        const transformEcrRepo = new PsReplayTransformLambdaEcrRepo(
+            this,
+            `TransformLambdaEcrRepo-${props.stageConfig.stageName}`,
+            { stageName: props.stageConfig.stageName }
+        );
+        const twitterWriterEcrRepo = new PsTeamTwitterWriterLambdaEcrRepo(
+            this,
+            `TwitterWriterLambda-${props.stageConfig.stageName}`,
+            { stageName: props.stageConfig.stageName }
+        );
+
+        const extractionLambda = new PsReplayExtractionLambda(
+            this,
+            `PsReplayExtractionLambda-${props.stageConfig.stageName}`,
+            {
+                stageName: props.stageConfig.stageName,
+                ecrRepo: extractionEcrRepo.ecrRepo,
+            }
+        );
+        const transformLambda = new PsReplayTransformLambda(
+            this,
+            `PsReplayTransformLambda-${props.stageConfig.stageName}`,
+            {
+                ecrRepo: transformEcrRepo.ecrRepo,
+                stageName: props.stageConfig.stageName,
+            }
+        );
+        const twitterWriterLambda = new PsTeamTwitterWriterLambda(
+            this,
+            `PsTeamTwitterWriterLambda-${props.stageConfig.stageName}`,
+            {
+                ecrRepo: twitterWriterEcrRepo.ecrRepo,
+                stageName: props.stageConfig.stageName,
+                twitterAccessCredentials: this.getTwitterSecrets(
+                    props.stageConfig.isProd,
+                    orderUpTwitterCreds
+                ),
+            }
+        );
+
+        const ingestionStateMachine = new PsIngestionStateMachine(
+            this,
+            `PsIngestionStateMachine-${props.stageConfig.stageName}`,
+            {
+                stageName: props.stageConfig.stageName,
+                replayExtractionLambda: extractionLambda.lambdaFunction,
+                transformExtractionLambda: transformLambda.lambdaFunction,
+                twitterWriterLambda: twitterWriterLambda.lambdaFunction,
+            }
+        );
+
+        const ingestionEventBridge = new PsIngestionEventBridge(
             this,
             `PsIngestionEventBridge-${props.stageConfig.stageName}`,
             { stageName: props.stageConfig.stageName }
         );
 
-        const ingestionLambda = new PsIngestionLambda(
-            this,
-            `PsIngestionLambda-${props.stageConfig.stageName}`,
-            {
-                ecrRepo: this.ecrRepo,
-                twitterAccessCredentials: this.getTwitterSecrets(
-                    props,
-                    orderUpTwitterCreds
-                ),
-                stageName: props.stageConfig.stageName,
-            }
-        );
-
         // Send format object to the targeted Lambda
-        eventBridge.eventRule.addTarget(
-            new LambdaFunction(ingestionLambda.lambdaFunction, {
-                event: RuleTargetInput.fromObject({ format: VGC_FORMAT }),
+        ingestionEventBridge.eventRule.addTarget(
+            new SfnStateMachine(ingestionStateMachine.stateMachine, {
+                input: RuleTargetInput.fromObject({ format: VGC_FORMAT }),
             })
         );
 
@@ -76,7 +114,7 @@ export class PsIngestionStack extends cdk.Stack {
             this,
             `PsIngestionAlarms-${props.stageConfig.stageName}`,
             {
-                psIngestionLamdba: ingestionLambda.lambdaFunction,
+                psIngestionStateMachine: ingestionStateMachine.stateMachine,
                 stageName: props.stageConfig.stageName,
             }
         );
@@ -94,7 +132,7 @@ export class PsIngestionStack extends cdk.Stack {
     }
 
     private getTwitterSecrets(
-        props: PsIngestionStackProps,
+        isProd: boolean,
         orderUpTwitterCreds: ISecret
     ): TwitterAccessCredentials {
         const twitterAccessToken = orderUpTwitterCreds
@@ -114,7 +152,7 @@ export class PsIngestionStack extends cdk.Stack {
             twitterAccessTokenSecret: twitterAccessTokenSecret,
             twitterApiKey: twitterApiKey,
             twitterApiKeySecret: twitterApiKeySecret,
-            twitterDisplayName: props.stageConfig.isProd
+            twitterDisplayName: isProd
                 ? PROD_TWITTER_DISPLAY_NAME
                 : DEV_TWITTER_DISPLAY_NAME,
         };
