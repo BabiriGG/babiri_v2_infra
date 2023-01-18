@@ -1,0 +1,49 @@
+import { Duration } from "aws-cdk-lib";
+import { Construct } from "constructs";
+import { RetentionDays } from "aws-cdk-lib/aws-logs";
+import { IRepository } from "aws-cdk-lib/aws-ecr";
+import {
+    DockerImageCode,
+    DockerImageFunction,
+    IFunction,
+} from "aws-cdk-lib/aws-lambda";
+import { PROD_STAGE } from "../../constants/stage-config";
+import {
+    DEFAULT_ECR_DEV_TAG,
+    PS_REPLAY_EXTRACTION_LAMBDA_ECR_PROD_TAG,
+} from "../../constants/ecr-constants";
+
+export interface PsReplayExtractionLambdaProps {
+    readonly stageName: string;
+    readonly ecrRepo: IRepository;
+}
+
+export class PsReplayExtractionLambda extends Construct {
+    readonly lambdaFunction: IFunction;
+
+    constructor(
+        scope: Construct,
+        id: string,
+        props: PsReplayExtractionLambdaProps
+    ) {
+        super(scope, id);
+
+        this.lambdaFunction = new DockerImageFunction(
+            this,
+            `PsReplayExtractionLambda-${props.stageName}`,
+            {
+                functionName: `PsReplayExtractionLambda-${props.stageName}`,
+                description: "Extract replay information from Pokémon Showdown",
+                code: DockerImageCode.fromEcr(props.ecrRepo, {
+                    tagOrDigest:
+                        props.stageName == PROD_STAGE
+                            ? PS_REPLAY_EXTRACTION_LAMBDA_ECR_PROD_TAG
+                            : DEFAULT_ECR_DEV_TAG,
+                }),
+                timeout: Duration.minutes(5),
+                memorySize: 1024,
+                logRetention: RetentionDays.ONE_WEEK,
+            }
+        );
+    }
+}
