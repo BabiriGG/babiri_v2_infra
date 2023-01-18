@@ -1,6 +1,6 @@
 # Statsugiri Infrastructure
 
-Infrastructure for deploying the [Statsugiri](https://github.com/StatsugiriGG/Statsugiri) monorepo. Provisioned by [AWS CDK](https://aws.amazon.com/cdk/).
+Infrastructure for deploying the [Statsugiri](https://github.com/Statsugiri/Statsugiri) monorepo. Provisioned by [AWS CDK](https://aws.amazon.com/cdk/).
 
 ## Testing
 
@@ -14,9 +14,11 @@ Create an [Amazon Web Services](https://aws.amazon.com/) account. Run [`aws conf
 
 Elastic Container Registry (ECR) repositories must be created with an available image prior to deploying. For manual image pushes, please refer to your ECR console's push commands.
 
-| Project               | ECR Repo Name         |
-| --------------------- | --------------------- |
-| `ps_ingestion_lambda` | `ps-ingestion-lambda` |
+| Project        | ECR Repo Name                   |
+| -------------- | ------------------------------- |
+| `ps-ingestion` | `ps-replay-extraction-lambda`   |
+| `---`          | `ps-replay-transform-lambda`    |
+| `---`          | `ps-team-twitter-writer-lambda` |
 
 #### Configure ECR Image Tags to Deploy
 
