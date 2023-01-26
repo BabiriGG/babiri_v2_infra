@@ -2,6 +2,7 @@ import { Duration } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { RetentionDays } from "aws-cdk-lib/aws-logs";
 import { IRepository } from "aws-cdk-lib/aws-ecr";
+import { Role } from "aws-cdk-lib/aws-iam";
 import {
     DockerImageCode,
     DockerImageFunction,
@@ -18,6 +19,7 @@ export interface PsTeamTwitterWriterLambdaProps {
     readonly ecrRepo: IRepository;
     readonly stageName: string;
     readonly twitterAccessCredentials: TwitterAccessCredentials;
+    readonly role: Role;
 }
 
 export class PsTeamTwitterWriterLambda extends Construct {
@@ -42,9 +44,10 @@ export class PsTeamTwitterWriterLambda extends Construct {
                             ? PS_TEAM_TWITTER_WRITER_LAMBDA_ECR_PROD_TAG
                             : DEFAULT_ECR_DEV_TAG,
                 }),
-                timeout: Duration.minutes(2),
+                timeout: Duration.minutes(5),
                 memorySize: 1024,
                 logRetention: RetentionDays.ONE_WEEK,
+                role: props.role,
                 environment: {
                     TWITTER_API_KEY:
                         props.twitterAccessCredentials.twitterApiKey,
