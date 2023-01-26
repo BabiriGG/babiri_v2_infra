@@ -1,6 +1,7 @@
 import { Duration } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { RetentionDays } from "aws-cdk-lib/aws-logs";
+import { Role } from "aws-cdk-lib/aws-iam";
 import { IRepository } from "aws-cdk-lib/aws-ecr";
 import {
     DockerImageCode,
@@ -16,6 +17,8 @@ import {
 export interface PsReplayTransformLambdaProps {
     readonly ecrRepo: IRepository;
     readonly stageName: string;
+    readonly teamsBucketName: string;
+    readonly role: Role;
 }
 
 export class PsReplayTransformLambda extends Construct {
@@ -40,9 +43,13 @@ export class PsReplayTransformLambda extends Construct {
                             ? PS_REPLAY_TRANSFORM_LAMBDA_ECR_PROD_TAG
                             : DEFAULT_ECR_DEV_TAG,
                 }),
-                timeout: Duration.minutes(2),
+                timeout: Duration.minutes(5),
                 memorySize: 1024,
                 logRetention: RetentionDays.ONE_WEEK,
+                role: props.role,
+                environment: {
+                    TEAMS_BUCKET_NAME: props.teamsBucketName,
+                },
             }
         );
     }
