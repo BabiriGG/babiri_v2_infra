@@ -43,7 +43,7 @@ export class PsReplayExtractionLambda extends Construct {
                             ? PS_REPLAY_EXTRACTION_LAMBDA_ECR_PROD_TAG
                             : DEFAULT_ECR_DEV_TAG,
                 }),
-                timeout: Duration.minutes(10),
+                timeout: Duration.minutes(15),
                 memorySize: 1024,
                 logRetention: RetentionDays.ONE_WEEK,
                 role: props.role,
