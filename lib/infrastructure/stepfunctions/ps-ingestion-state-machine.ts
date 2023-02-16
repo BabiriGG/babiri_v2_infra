@@ -8,7 +8,6 @@ export interface PsIngestionStateMachineProps {
     readonly stageName: string;
     readonly replayExtractionLambda: IFunction;
     readonly transformExtractionLambda: IFunction;
-    readonly twitterWriterLambda: IFunction;
 }
 
 export class PsIngestionStateMachine extends Construct {
@@ -33,13 +32,6 @@ export class PsIngestionStateMachine extends Construct {
                 lambdaFunction: props.transformExtractionLambda,
             }
         );
-        const twitterWriterJob = new LambdaInvoke(
-            this,
-            `InvokeTwitterWrite-${props.stageName}`,
-            {
-                lambdaFunction: props.twitterWriterLambda,
-            }
-        );
 
         const logGroup = new LogGroup(
             this,
@@ -49,9 +41,7 @@ export class PsIngestionStateMachine extends Construct {
             this,
             `PsIngestionStateMachine-${props.stageName}`,
             {
-                definition: replayExtractionJob
-                    .next(replayTransformJob)
-                    .next(twitterWriterJob),
+                definition: replayExtractionJob.next(replayTransformJob),
                 logs: {
                     destination: logGroup,
                     level: LogLevel.ALL,
