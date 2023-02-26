@@ -18,6 +18,8 @@ import { PsReplayTransformLambda } from "../infrastructure/lambda/ps-replay-tran
 import { PsIngestionStateMachine } from "../infrastructure/stepfunctions/ps-ingestion-state-machine";
 import { PolicyStatement, Effect } from "aws-cdk-lib/aws-iam";
 import { PsIngestionTeamsTable } from "../infrastructure/dynamodb/ps-ingestion-teams-table";
+import { PsTeamsDdbWriterLambda } from "../infrastructure/lambda/ps-teams-ddb-writer-lambda";
+import { PsTeamsDdbWriterLambdaEcrRepo } from "../infrastructure/ecr/ps-teams-ddb-writer-lambda-ecr-repo";
 
 export interface PsIngestionStackProps extends cdk.StackProps {
     stageConfig: StageConfig;
@@ -55,6 +57,11 @@ export class PsIngestionStack extends cdk.Stack {
             `TransformLambdaEcrRepo-${props.stageConfig.stageName}`,
             { stageName: props.stageConfig.stageName }
         );
+        const ddbWriteEcrRepo = new PsTeamsDdbWriterLambdaEcrRepo(
+            this,
+            `DdbWriteEcrRepo-${props.stageConfig.stageName}`,
+            { stageName: props.stageConfig.stageName }
+        );
 
         const logsAllowStatement = new PolicyStatement({
             effect: Effect.ALLOW,
@@ -84,6 +91,12 @@ export class PsIngestionStack extends cdk.Stack {
             effect: Effect.ALLOW,
             actions: ["s3:*"],
             resources: [teamsBucket.bucket.bucketArn + "/*"],
+        });
+
+        const teamsTableWriteStatement = new PolicyStatement({
+            effect: Effect.ALLOW,
+            actions: ["dynamodb:*"],
+            resources: [teamsTable.table.tableArn],
         });
 
         const extractionLambdaRole = new Role(
@@ -131,6 +144,28 @@ export class PsIngestionStack extends cdk.Stack {
             }
         );
 
+        const ddbWriteLambdaRole = new Role(
+            this,
+            `DdbWriteLambdaRole-${props.stageConfig.stageName}`,
+            {
+                assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
+                description: "Role for PS Teams DynamoDB Writer Lambda",
+            }
+        );
+        ddbWriteLambdaRole.addToPolicy(teamsBucketReadStatement);
+        ddbWriteLambdaRole.addToPolicy(teamsTableWriteStatement);
+
+        const ddbWriteLambda = new PsTeamsDdbWriterLambda(
+            this,
+            `PsTeamsDdbWriterLambda-${props.stageConfig.stageName}`,
+            {
+                ecrRepo: ddbWriteEcrRepo.ecrRepo,
+                stageName: props.stageConfig.stageName,
+                role: ddbWriteLambdaRole,
+                tableName: teamsTable.table.tableName,
+            }
+        );
+
         const ingestionStateMachine = new PsIngestionStateMachine(
             this,
             `PsIngestionStateMachine-${props.stageConfig.stageName}`,
@@ -138,6 +173,7 @@ export class PsIngestionStack extends cdk.Stack {
                 stageName: props.stageConfig.stageName,
                 replayExtractionLambda: extractionLambda.lambdaFunction,
                 transformExtractionLambda: transformLambda.lambdaFunction,
+                ddbWriteLambda: ddbWriteLambda.lambdaFunction,
             }
         );
 
@@ -167,7 +203,7 @@ export class PsIngestionStack extends cdk.Stack {
             this,
             `PsIngestionEmailSns-${props.stageConfig.stageName}`,
             {
-                serviceName: "PsIngestion",
+                serviceName: "PsIngestionService",
                 email: STATSUGIRI_EMAIL,
                 stageName: props.stageConfig.stageName,
             }
