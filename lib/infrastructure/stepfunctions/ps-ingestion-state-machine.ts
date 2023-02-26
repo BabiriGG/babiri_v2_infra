@@ -8,6 +8,7 @@ export interface PsIngestionStateMachineProps {
     readonly stageName: string;
     readonly replayExtractionLambda: IFunction;
     readonly transformExtractionLambda: IFunction;
+    readonly ddbWriteLambda: IFunction;
 }
 
 export class PsIngestionStateMachine extends Construct {
@@ -32,6 +33,13 @@ export class PsIngestionStateMachine extends Construct {
                 lambdaFunction: props.transformExtractionLambda,
             }
         );
+        const ddbWriteJob = new LambdaInvoke(
+            this,
+            `InvokeDdbWrite-${props.stageName}`,
+            {
+                lambdaFunction: props.ddbWriteLambda,
+            }
+        );
 
         const logGroup = new LogGroup(
             this,
@@ -41,7 +49,9 @@ export class PsIngestionStateMachine extends Construct {
             this,
             `PsIngestionStateMachine-${props.stageName}`,
             {
-                definition: replayExtractionJob.next(replayTransformJob),
+                definition: replayExtractionJob
+                    .next(replayTransformJob)
+                    .next(ddbWriteJob),
                 logs: {
                     destination: logGroup,
                     level: LogLevel.ALL,
