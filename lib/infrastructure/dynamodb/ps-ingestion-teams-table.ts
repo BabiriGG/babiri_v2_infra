@@ -25,5 +25,14 @@ export class PsIngestionTeamsTable extends Construct {
                 removalPolicy: RemovalPolicy.DESTROY,
             }
         );
+        this.table.addGlobalSecondaryIndex({
+            indexName: "sortKeyIndex",
+            partitionKey: { name: "sk", type: AttributeType.STRING },
+            sortKey: { name: "rating", type: AttributeType.STRING },
+        });
+        this.table.addGlobalSecondaryIndex({
+            indexName: "formatIdIndex",
+            partitionKey: { name: "format_id", type: AttributeType.STRING },
+        });
     }
 }
