@@ -11,6 +11,7 @@ import {
 import { PROD_STAGE } from "../../constants/stage-config";
 import {
     DEFAULT_ECR_DEV_TAG,
+    PS_TEAMS_DDB_WRITER_LAMBDA_ECR_PROD_TAG,
     PS_TEAMS_DDB_WRITER_LAMBDA_ECR_REPO,
 } from "../../constants/ecr-constants";
 
@@ -40,7 +41,7 @@ export class PsTeamsDdbWriterLambda extends Construct {
                 code: DockerImageCode.fromEcr(props.ecrRepo, {
                     tagOrDigest:
                         props.stageName == PROD_STAGE
-                            ? PS_TEAMS_DDB_WRITER_LAMBDA_ECR_REPO
+                            ? PS_TEAMS_DDB_WRITER_LAMBDA_ECR_PROD_TAG
                             : DEFAULT_ECR_DEV_TAG,
                 }),
                 timeout: Duration.minutes(5),

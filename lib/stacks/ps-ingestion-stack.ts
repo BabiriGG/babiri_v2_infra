@@ -154,6 +154,7 @@ export class PsIngestionStack extends cdk.Stack {
         );
         ddbWriteLambdaRole.addToPolicy(teamsBucketReadStatement);
         ddbWriteLambdaRole.addToPolicy(teamsTableWriteStatement);
+        ddbWriteLambdaRole.addToPolicy(logsAllowStatement);
 
         const ddbWriteLambda = new PsTeamsDdbWriterLambda(
             this,
