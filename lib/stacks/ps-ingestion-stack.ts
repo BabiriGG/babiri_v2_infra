@@ -1,5 +1,4 @@
 import * as cdk from "aws-cdk-lib";
-import { Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { RuleTargetInput } from "aws-cdk-lib/aws-events";
 import { SfnStateMachine } from "aws-cdk-lib/aws-events-targets";
 import { SnsAction } from "aws-cdk-lib/aws-cloudwatch-actions";
@@ -16,7 +15,12 @@ import { PsReplayExtractionLambdaEcrRepo } from "../infrastructure/ecr/ps-replay
 import { PsReplayTransformLambdaEcrRepo } from "../infrastructure/ecr/ps-replay-transform-lambda-ecr-repo";
 import { PsReplayTransformLambda } from "../infrastructure/lambda/ps-replay-transform-lambda";
 import { PsIngestionStateMachine } from "../infrastructure/stepfunctions/ps-ingestion-state-machine";
-import { PolicyStatement, Effect } from "aws-cdk-lib/aws-iam";
+import {
+    PolicyStatement,
+    Effect,
+    Role,
+    ServicePrincipal,
+} from "aws-cdk-lib/aws-iam";
 import { PsIngestionTeamsTable } from "../infrastructure/dynamodb/ps-ingestion-teams-table";
 import { PsTeamsDdbWriterLambda } from "../infrastructure/lambda/ps-teams-ddb-writer-lambda";
 import { PsTeamsDdbWriterLambdaEcrRepo } from "../infrastructure/ecr/ps-teams-ddb-writer-lambda-ecr-repo";
@@ -26,10 +30,13 @@ export interface PsIngestionStackProps extends cdk.StackProps {
 }
 
 export class PsIngestionStack extends cdk.Stack {
+    // Shared with PS Teams Service
+    public readonly teamsTable: PsIngestionTeamsTable;
+
     constructor(scope: cdk.App, id: string, props: PsIngestionStackProps) {
         super(scope, id, props);
 
-        const teamsTable = new PsIngestionTeamsTable(
+        this.teamsTable = new PsIngestionTeamsTable(
             this,
             `PsIngestionTeamsTable-${props.stageConfig.stageName}`,
             { stageName: props.stageConfig.stageName }
@@ -96,7 +103,7 @@ export class PsIngestionStack extends cdk.Stack {
         const teamsTableWriteStatement = new PolicyStatement({
             effect: Effect.ALLOW,
             actions: ["dynamodb:*"],
-            resources: [teamsTable.table.tableArn],
+            resources: [this.teamsTable.table.tableArn],
         });
 
         const extractionLambdaRole = new Role(
@@ -163,7 +170,7 @@ export class PsIngestionStack extends cdk.Stack {
                 ecrRepo: ddbWriteEcrRepo.ecrRepo,
                 stageName: props.stageConfig.stageName,
                 role: ddbWriteLambdaRole,
-                tableName: teamsTable.table.tableName,
+                tableName: this.teamsTable.table.tableName,
             }
         );
 
