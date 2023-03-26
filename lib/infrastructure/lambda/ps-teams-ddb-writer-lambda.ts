@@ -11,8 +11,8 @@ import {
 import { PROD_STAGE } from "../../constants/stage-config";
 import {
     DEFAULT_ECR_DEV_TAG,
-    NUM_TEAMS_DEV,
-    NUM_TEAMS_PROD,
+    NUM_USERS_TO_PULL_DEV,
+    NUM_USERS_TO_PULL_PROD,
     PS_TEAMS_DDB_WRITER_LAMBDA_ECR_PROD_TAG,
     PS_TEAMS_DDB_WRITER_LAMBDA_ECR_REPO,
 } from "../../constants/ecr-constants";
@@ -52,10 +52,10 @@ export class PsTeamsDdbWriterLambda extends Construct {
                 role: props.role,
                 environment: {
                     TABLE_NAME: props.tableName,
-                    NUM_TEAMS:
+                    NUM_USERS_TO_PULL:
                         props.stageName == PROD_STAGE
-                            ? NUM_TEAMS_PROD
-                            : NUM_TEAMS_DEV,
+                            ? NUM_USERS_TO_PULL_PROD
+                            : NUM_USERS_TO_PULL_DEV,
                 },
             }
         );
