@@ -14,7 +14,6 @@ import {
     NUM_USERS_TO_PULL_DEV,
     NUM_USERS_TO_PULL_PROD,
     PS_TEAMS_DDB_WRITER_LAMBDA_ECR_PROD_TAG,
-    PS_TEAMS_DDB_WRITER_LAMBDA_ECR_REPO,
 } from "../../constants/ecr-constants";
 
 export interface PsTeamsDdbWriterLambdaProps {
@@ -52,10 +51,6 @@ export class PsTeamsDdbWriterLambda extends Construct {
                 role: props.role,
                 environment: {
                     TABLE_NAME: props.tableName,
-                    NUM_USERS_TO_PULL:
-                        props.stageName == PROD_STAGE
-                            ? NUM_USERS_TO_PULL_PROD
-                            : NUM_USERS_TO_PULL_DEV,
                 },
             }
         );
