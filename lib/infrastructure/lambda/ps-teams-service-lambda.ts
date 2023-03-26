@@ -1,61 +1,51 @@
 import { Duration } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { RetentionDays } from "aws-cdk-lib/aws-logs";
-import { Role } from "aws-cdk-lib/aws-iam";
 import { IRepository } from "aws-cdk-lib/aws-ecr";
 import {
     DockerImageCode,
     DockerImageFunction,
     IFunction,
 } from "aws-cdk-lib/aws-lambda";
+import { Role } from "aws-cdk-lib/aws-iam";
 import { PROD_STAGE } from "../../constants/stage-config";
-import {
-    DEFAULT_ECR_DEV_TAG,
-    NUM_TEAMS_DEV,
-    NUM_TEAMS_PROD,
-    PS_TEAMS_DDB_WRITER_LAMBDA_ECR_PROD_TAG,
-    PS_TEAMS_DDB_WRITER_LAMBDA_ECR_REPO,
-} from "../../constants/ecr-constants";
+import { DEFAULT_ECR_DEV_TAG } from "../../constants/ecr-constants";
 
-export interface PsTeamsDdbWriterLambdaProps {
-    readonly ecrRepo: IRepository;
+export interface PsTeamsServiceLambdaProps {
     readonly stageName: string;
+    readonly ecrRepo: IRepository;
     readonly role: Role;
-    readonly tableName: string;
+    readonly teamsTableName: string;
 }
 
-export class PsTeamsDdbWriterLambda extends Construct {
+export class PsTeamsServiceLambda extends Construct {
     readonly lambdaFunction: IFunction;
 
     constructor(
         scope: Construct,
         id: string,
-        props: PsTeamsDdbWriterLambdaProps
+        props: PsTeamsServiceLambdaProps
     ) {
         super(scope, id);
 
         this.lambdaFunction = new DockerImageFunction(
             this,
-            `PsTeamsDdbWriterLambda-${props.stageName}`,
+            `PsTeamsServiceLambda-${props.stageName}`,
             {
-                functionName: `PsTeamsDdbWriterLambda-${props.stageName}`,
-                description: "Write team records to DynamoDB",
+                functionName: `PsTeamsServiceLambda-${props.stageName}`,
+                description: "Retrieve PS teams from DynamoDB",
                 code: DockerImageCode.fromEcr(props.ecrRepo, {
                     tagOrDigest:
                         props.stageName == PROD_STAGE
-                            ? PS_TEAMS_DDB_WRITER_LAMBDA_ECR_PROD_TAG
+                            ? "PLACEHOLDER"
                             : DEFAULT_ECR_DEV_TAG,
                 }),
-                timeout: Duration.minutes(5),
+                timeout: Duration.minutes(1),
                 memorySize: 1024,
                 logRetention: RetentionDays.ONE_WEEK,
                 role: props.role,
                 environment: {
-                    TABLE_NAME: props.tableName,
-                    NUM_TEAMS:
-                        props.stageName == PROD_STAGE
-                            ? NUM_TEAMS_PROD
-                            : NUM_TEAMS_DEV,
+                    TEAMS_TABLE_NAME: props.teamsTableName,
                 },
             }
         );

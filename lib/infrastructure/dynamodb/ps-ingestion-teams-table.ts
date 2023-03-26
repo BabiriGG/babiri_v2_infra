@@ -19,16 +19,16 @@ export class PsIngestionTeamsTable extends Construct {
             `PsIngestionTeamsTable-${props.stageName}`,
             {
                 tableName: `PsIngestionTeamsTable-${props.stageName}`,
-                partitionKey: { name: "pk", type: AttributeType.STRING },
-                sortKey: { name: "sk", type: AttributeType.STRING },
+                partitionKey: { name: "team_id", type: AttributeType.STRING },
+                sortKey: { name: "snapshot_date", type: AttributeType.STRING },
                 billingMode: BillingMode.PAY_PER_REQUEST,
                 removalPolicy: RemovalPolicy.DESTROY,
             }
         );
         this.table.addGlobalSecondaryIndex({
-            indexName: "sortKeyIndex",
-            partitionKey: { name: "sk", type: AttributeType.STRING },
-            sortKey: { name: "rating", type: AttributeType.STRING },
+            indexName: "snapshotDateIndex",
+            partitionKey: { name: "snapshot_date", type: AttributeType.STRING },
+            sortKey: { name: "rating", type: AttributeType.NUMBER },
         });
         this.table.addGlobalSecondaryIndex({
             indexName: "formatIdIndex",

@@ -4,10 +4,15 @@ import {
     BetaStageConfig,
     ProdStageConfig,
 } from "./lib/constants/stage-config";
+import { PsIngestionTeamsTable } from "./lib/infrastructure/dynamodb/ps-ingestion-teams-table";
 import {
     PsIngestionStack,
     PsIngestionStackProps,
 } from "./lib/stacks/ps-ingestion-stack";
+import {
+    PsTeamsServiceStack,
+    PsTeamsServiceStackProps,
+} from "./lib/stacks/ps-teams-service-stack";
 
 export class StatsugiriInfrastructureApp extends cdk.App {
     public setupBeta() {
@@ -26,7 +31,14 @@ export class StatsugiriInfrastructureApp extends cdk.App {
      */
     private createBetaStage() {
         let betaStacks = new Array<cdk.Stack>();
-        betaStacks.push(this.setupPsIngestionStack(BetaStageConfig));
+        const psIngestionStack = this.setupPsIngestionStack(BetaStageConfig);
+        betaStacks.push(psIngestionStack);
+        betaStacks.push(
+            this.setupPsTeamsServiceStack(
+                BetaStageConfig,
+                psIngestionStack.teamsTable
+            )
+        );
     }
 
     /**
@@ -35,7 +47,14 @@ export class StatsugiriInfrastructureApp extends cdk.App {
      */
     private createProdStage() {
         let prodStacks = new Array<cdk.Stack>();
-        prodStacks.push(this.setupPsIngestionStack(ProdStageConfig));
+        const psIngestionStack = this.setupPsIngestionStack(ProdStageConfig);
+        prodStacks.push(psIngestionStack);
+        prodStacks.push(
+            this.setupPsTeamsServiceStack(
+                ProdStageConfig,
+                psIngestionStack.teamsTable
+            )
+        );
     }
 
     private setupPsIngestionStack(stageConfig: StageConfig) {
@@ -47,6 +66,22 @@ export class StatsugiriInfrastructureApp extends cdk.App {
             this,
             `PsIngestionStack-${stageConfig.stageName}`,
             psIngestionStackProps
+        );
+    }
+
+    private setupPsTeamsServiceStack(
+        stageConfig: StageConfig,
+        teamsTable: PsIngestionTeamsTable
+    ) {
+        const psTeamsServiceStackProps: PsTeamsServiceStackProps = {
+            stageConfig: stageConfig,
+            teamsTable: teamsTable,
+        };
+
+        return new PsTeamsServiceStack(
+            this,
+            `PsTeamsServiceStack-${stageConfig.stageName}`,
+            psTeamsServiceStackProps
         );
     }
 }
