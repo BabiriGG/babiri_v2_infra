@@ -12,6 +12,8 @@ import { PROD_STAGE } from "../../constants/stage-config";
 import {
     DEFAULT_ECR_DEV_TAG,
     PS_REPLAY_EXTRACTION_LAMBDA_ECR_PROD_TAG,
+    NUM_USERS_TO_PULL_DEV,
+    NUM_USERS_TO_PULL_PROD,
 } from "../../constants/ecr-constants";
 
 export interface PsReplayExtractionLambdaProps {
@@ -49,6 +51,10 @@ export class PsReplayExtractionLambda extends Construct {
                 role: props.role,
                 environment: {
                     REPLAYS_BUCKET_NAME: props.replaysBucketName,
+                    NUM_USERS_TO_PULL:
+                        props.stageName == PROD_STAGE
+                            ? NUM_USERS_TO_PULL_PROD
+                            : NUM_USERS_TO_PULL_DEV,
                 },
             }
         );
