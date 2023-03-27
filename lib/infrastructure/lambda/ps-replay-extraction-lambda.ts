@@ -10,8 +10,8 @@ import {
 import { Role } from "aws-cdk-lib/aws-iam";
 import { PROD_STAGE } from "../../constants/stage-config";
 import {
-    DEFAULT_ECR_DEV_TAG,
     PS_REPLAY_EXTRACTION_LAMBDA_ECR_PROD_TAG,
+    PS_REPLAY_EXTRACTION_LAMBDA_ECR_DEV_TAG,
     NUM_USERS_TO_PULL_DEV,
     NUM_USERS_TO_PULL_PROD,
 } from "../../constants/ecr-constants";
@@ -43,7 +43,7 @@ export class PsReplayExtractionLambda extends Construct {
                     tagOrDigest:
                         props.stageName == PROD_STAGE
                             ? PS_REPLAY_EXTRACTION_LAMBDA_ECR_PROD_TAG
-                            : DEFAULT_ECR_DEV_TAG,
+                            : PS_REPLAY_EXTRACTION_LAMBDA_ECR_DEV_TAG,
                 }),
                 timeout: Duration.minutes(15),
                 memorySize: 1024,
