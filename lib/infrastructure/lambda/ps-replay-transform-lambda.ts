@@ -10,8 +10,8 @@ import {
 } from "aws-cdk-lib/aws-lambda";
 import { PROD_STAGE } from "../../constants/stage-config";
 import {
-    DEFAULT_ECR_DEV_TAG,
     PS_REPLAY_TRANSFORM_LAMBDA_ECR_PROD_TAG,
+    PS_REPLAY_TRANSFORM_LAMBDA_ECR_DEV_TAG,
 } from "../../constants/ecr-constants";
 
 export interface PsReplayTransformLambdaProps {
@@ -41,7 +41,7 @@ export class PsReplayTransformLambda extends Construct {
                     tagOrDigest:
                         props.stageName == PROD_STAGE
                             ? PS_REPLAY_TRANSFORM_LAMBDA_ECR_PROD_TAG
-                            : DEFAULT_ECR_DEV_TAG,
+                            : PS_REPLAY_TRANSFORM_LAMBDA_ECR_DEV_TAG,
                 }),
                 timeout: Duration.minutes(5),
                 memorySize: 1024,
