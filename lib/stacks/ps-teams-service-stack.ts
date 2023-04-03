@@ -9,6 +9,7 @@ import {
 } from "aws-cdk-lib/aws-iam";
 import { PsTeamsServiceLambdaEcrRepo } from "../infrastructure/ecr/ps-teams-service-lambda-ecr-repo";
 import { PsIngestionTeamsTable } from "../infrastructure/dynamodb/ps-ingestion-teams-table";
+import { PsTeamsServiceApiGateway } from "../infrastructure/apigateway/ps-teams-service-api-gateway";
 
 export interface PsTeamsServiceStackProps extends cdk.StackProps {
     stageConfig: StageConfig;
@@ -39,6 +40,8 @@ export class PsTeamsServiceStack extends cdk.Stack {
                 description: "Role for PS Teams Service Lambda",
             }
         );
+        psTeamsServiceRole.addToPolicy(logsAllowStatement);
+        props.teamsTable.table.grantReadData(psTeamsServiceRole);
 
         const psTeamsServiceLambda = new PsTeamsServiceLambda(
             this,
@@ -48,6 +51,15 @@ export class PsTeamsServiceStack extends cdk.Stack {
                 stageName: props.stageConfig.stageName,
                 role: psTeamsServiceRole,
                 teamsTableName: props.teamsTable.table.tableName,
+            }
+        );
+
+        const apiGateway = new PsTeamsServiceApiGateway(
+            this,
+            `PsTeamsServiceApiGateway-${props.stageConfig.stageName}`,
+            {
+                stageConfig: props.stageConfig,
+                psTeamsServiceLambda: psTeamsServiceLambda.lambdaFunction,
             }
         );
     }
