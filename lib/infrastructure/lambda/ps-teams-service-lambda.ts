@@ -9,7 +9,10 @@ import {
 } from "aws-cdk-lib/aws-lambda";
 import { Role } from "aws-cdk-lib/aws-iam";
 import { PROD_STAGE } from "../../constants/stage-config";
-import { DEFAULT_ECR_DEV_TAG } from "../../constants/ecr-constants";
+import {
+    PS_TEAMS_SERVICE_LAMBDA_PROD_TAG,
+    PS_TEAMS_SERVICE_LAMBDA_DEV_TAG,
+} from "../../constants/ecr-constants";
 
 export interface PsTeamsServiceLambdaProps {
     readonly stageName: string;
@@ -37,8 +40,8 @@ export class PsTeamsServiceLambda extends Construct {
                 code: DockerImageCode.fromEcr(props.ecrRepo, {
                     tagOrDigest:
                         props.stageName == PROD_STAGE
-                            ? "PLACEHOLDER"
-                            : DEFAULT_ECR_DEV_TAG,
+                            ? PS_TEAMS_SERVICE_LAMBDA_PROD_TAG
+                            : PS_TEAMS_SERVICE_LAMBDA_DEV_TAG,
                 }),
                 timeout: Duration.minutes(1),
                 memorySize: 1024,

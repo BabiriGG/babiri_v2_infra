@@ -15,4 +15,6 @@ export const NUM_USERS_TO_PULL_DEV = "20";
 export const NUM_USERS_TO_PULL_PROD = "100";
 
 // PS Teams Service
-export const PS_TEAMS_SERVICE_LAMBDA_ECR_REPO = "ps-teams-lambda";
+export const PS_TEAMS_SERVICE_LAMBDA_ECR_REPO = "ps-teams-service-lambda";
+export const PS_TEAMS_SERVICE_LAMBDA_PROD_TAG = "3f174a6";
+export const PS_TEAMS_SERVICE_LAMBDA_DEV_TAG = "latest";

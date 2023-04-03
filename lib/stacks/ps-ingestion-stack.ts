@@ -76,36 +76,6 @@ export class PsIngestionStack extends cdk.Stack {
             resources: ["*"],
         });
 
-        const replaysBucketWriteStatement = new PolicyStatement({
-            effect: Effect.ALLOW,
-            actions: ["s3:*"],
-            resources: [replaysBucket.bucket.bucketArn + "/*"],
-        });
-
-        const replaysBucketReadStatement = new PolicyStatement({
-            effect: Effect.ALLOW,
-            actions: ["s3:*"],
-            resources: [replaysBucket.bucket.bucketArn + "/*"],
-        });
-
-        const teamsBucketWriteStatement = new PolicyStatement({
-            effect: Effect.ALLOW,
-            actions: ["s3:*"],
-            resources: [teamsBucket.bucket.bucketArn + "/*"],
-        });
-
-        const teamsBucketReadStatement = new PolicyStatement({
-            effect: Effect.ALLOW,
-            actions: ["s3:*"],
-            resources: [teamsBucket.bucket.bucketArn + "/*"],
-        });
-
-        const teamsTableWriteStatement = new PolicyStatement({
-            effect: Effect.ALLOW,
-            actions: ["dynamodb:*"],
-            resources: [this.teamsTable.table.tableArn],
-        });
-
         const extractionLambdaRole = new Role(
             this,
             `ExtractionLambdaRole-${props.stageConfig.stageName}`,
@@ -114,7 +84,7 @@ export class PsIngestionStack extends cdk.Stack {
                 description: "Role for PS Replay Extraction Lambda",
             }
         );
-        extractionLambdaRole.addToPolicy(replaysBucketWriteStatement);
+        replaysBucket.bucket.grantWrite(extractionLambdaRole);
         extractionLambdaRole.addToPolicy(logsAllowStatement);
 
         const extractionLambda = new PsReplayExtractionLambda(
@@ -136,8 +106,8 @@ export class PsIngestionStack extends cdk.Stack {
                 description: "Role for PS Replay Transform Lambda",
             }
         );
-        transformLambdaRole.addToPolicy(replaysBucketReadStatement);
-        transformLambdaRole.addToPolicy(teamsBucketWriteStatement);
+        replaysBucket.bucket.grantRead(transformLambdaRole);
+        teamsBucket.bucket.grantWrite(transformLambdaRole);
         transformLambdaRole.addToPolicy(logsAllowStatement);
 
         const transformLambda = new PsReplayTransformLambda(
@@ -159,8 +129,8 @@ export class PsIngestionStack extends cdk.Stack {
                 description: "Role for PS Teams DynamoDB Writer Lambda",
             }
         );
-        ddbWriteLambdaRole.addToPolicy(teamsBucketReadStatement);
-        ddbWriteLambdaRole.addToPolicy(teamsTableWriteStatement);
+        teamsBucket.bucket.grantRead(ddbWriteLambdaRole);
+        this.teamsTable.table.grantWriteData(ddbWriteLambdaRole);
         ddbWriteLambdaRole.addToPolicy(logsAllowStatement);
 
         const ddbWriteLambda = new PsTeamsDdbWriterLambda(
