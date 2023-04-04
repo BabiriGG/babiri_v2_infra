@@ -22,7 +22,11 @@ export class PsTeamsServiceApiGateway extends Construct {
             proxy: false,
         });
 
-        const getHealthEndpoint = this.lambdaApi.root.addResource("health");
-        getHealthEndpoint.addMethod("GET");
+        const getHealthEndpoints = this.lambdaApi.root.addResource("health");
+        getHealthEndpoints.addMethod("GET"); // GET /health
+
+        const getTeamsEndpoints = this.lambdaApi.root.addResource("teams");
+        const getTeamEndpoint = getTeamsEndpoints.addResource("{team_id}");
+        getTeamEndpoint.addMethod("GET"); // GET /teams/{team_id}
     }
 }
