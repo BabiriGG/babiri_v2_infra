@@ -1,7 +1,13 @@
 import { Construct } from "constructs";
 import { StageConfig } from "../../constants";
-import { LambdaRestApi } from "aws-cdk-lib/aws-apigateway";
+import {
+    Deployment,
+    LambdaRestApi,
+    LogGroupLogDestination,
+    Stage,
+} from "aws-cdk-lib/aws-apigateway";
 import { IFunction } from "aws-cdk-lib/aws-lambda";
+import { LogGroup } from "aws-cdk-lib/aws-logs";
 
 export interface PsTeamsServiceApiGatewayProps {
     stageConfig: StageConfig;
@@ -20,6 +26,9 @@ export class PsTeamsServiceApiGateway extends Construct {
         this.lambdaApi = new LambdaRestApi(this, id, {
             handler: props.psTeamsServiceLambda,
             proxy: false,
+            deployOptions: {
+                stageName: props.stageConfig.stageName,
+            },
         });
 
         const healthApiRoot = this.lambdaApi.root.addResource("health");
@@ -43,5 +52,11 @@ export class PsTeamsServiceApiGateway extends Construct {
                 "method.request.querystring.pkmn6": false,
             },
         }); // GET /teams/{format}/{date}
+
+        const deployment = new Deployment(
+            this,
+            `PsTeamsServiceApiDeployment-${props.stageConfig.stageName}`,
+            { api: this.lambdaApi }
+        );
     }
 }
