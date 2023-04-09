@@ -22,11 +22,26 @@ export class PsTeamsServiceApiGateway extends Construct {
             proxy: false,
         });
 
-        const getHealthEndpoints = this.lambdaApi.root.addResource("health");
-        getHealthEndpoints.addMethod("GET"); // GET /health
+        const healthApiRoot = this.lambdaApi.root.addResource("health");
+        healthApiRoot.addMethod("GET"); // GET /health
 
-        const getTeamsEndpoints = this.lambdaApi.root.addResource("teams");
-        const getTeamEndpoint = getTeamsEndpoints.addResource("{team_id}");
-        getTeamEndpoint.addMethod("GET"); // GET /teams/{team_id}
+        const teamApiRoot = this.lambdaApi.root.addResource("team");
+        const getTeamResource = teamApiRoot.addResource("{team_id}");
+        getTeamResource.addMethod("GET"); // GET /team/{team_id}
+
+        const teamsApiRoot = this.lambdaApi.root.addResource("teams");
+        const getTeamsFormatResource = teamsApiRoot.addResource("{format}");
+        const getTeamsDateResource =
+            getTeamsFormatResource.addResource("{date}");
+        getTeamsDateResource.addMethod("GET", undefined, {
+            requestParameters: {
+                "method.request.querystring.pkmn": false,
+                "method.request.querystring.pkmn2": false,
+                "method.request.querystring.pkmn3": false,
+                "method.request.querystring.pkmn4": false,
+                "method.request.querystring.pkmn5": false,
+                "method.request.querystring.pkmn6": false,
+            },
+        }); // GET /teams/{format}/{date}
     }
 }
