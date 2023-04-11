@@ -10,6 +10,8 @@ import {
 import { PsTeamsServiceLambdaEcrRepo } from "../infrastructure/ecr/ps-teams-service-lambda-ecr-repo";
 import { PsIngestionTeamsTable } from "../infrastructure/dynamodb/ps-ingestion-teams-table";
 import { PsTeamsServiceApiGateway } from "../infrastructure/apigateway/ps-teams-service-api-gateway";
+import { PsTeamsServiceAlarms } from "../infrastructure/cloudwatch/ps-teams-service-alarms";
+import { PsTeamsServiceDashboard } from "../infrastructure/cloudwatch/ps-teams-service-dashboard";
 
 export interface PsTeamsServiceStackProps extends cdk.StackProps {
     stageConfig: StageConfig;
@@ -60,6 +62,15 @@ export class PsTeamsServiceStack extends cdk.Stack {
             {
                 stageConfig: props.stageConfig,
                 psTeamsServiceLambda: psTeamsServiceLambda.lambdaFunction,
+            }
+        );
+
+        const psTeamsServiceDashboard = new PsTeamsServiceDashboard(
+            this,
+            `PsTeamsServiceDashboard-${props.stageConfig.stageName}`,
+            {
+                psTeamsServiceLambda: psTeamsServiceLambda,
+                stageConfig: props.stageConfig,
             }
         );
     }

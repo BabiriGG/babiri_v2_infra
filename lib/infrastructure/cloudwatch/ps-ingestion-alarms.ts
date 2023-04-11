@@ -27,7 +27,7 @@ export class PsIngestionAlarms extends Construct {
                     ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
                 evaluationPeriods: 1,
                 alarmDescription:
-                    "Alarm if sum of errors greater than or equal to threshold (1) for 1 evaluation period",
+                    "PS Ingestion State Machine is receiving errors.",
             }
         );
     }
