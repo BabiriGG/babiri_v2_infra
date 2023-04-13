@@ -10,8 +10,11 @@ import {
 import { PsTeamsServiceLambdaEcrRepo } from "../infrastructure/ecr/ps-teams-service-lambda-ecr-repo";
 import { PsIngestionTeamsTable } from "../infrastructure/dynamodb/ps-ingestion-teams-table";
 import { PsTeamsServiceApiGateway } from "../infrastructure/apigateway/ps-teams-service-api-gateway";
-import { PsTeamsServiceAlarms } from "../infrastructure/cloudwatch/ps-teams-service-alarms";
 import { PsTeamsServiceDashboard } from "../infrastructure/cloudwatch/ps-teams-service-dashboard";
+import {
+    Certificate,
+    CertificateValidation,
+} from "aws-cdk-lib/aws-certificatemanager";
 
 export interface PsTeamsServiceStackProps extends cdk.StackProps {
     stageConfig: StageConfig;
@@ -56,12 +59,22 @@ export class PsTeamsServiceStack extends cdk.Stack {
             }
         );
 
+        const certificate = new Certificate(
+            this,
+            `PsTeamsServiceCert-${props.stageConfig.stageName}`,
+            {
+                domainName: "*.statsugiri.gg",
+                validation: CertificateValidation.fromDns(),
+            }
+        );
+
         const apiGateway = new PsTeamsServiceApiGateway(
             this,
             `PsTeamsServiceApiGateway-${props.stageConfig.stageName}`,
             {
                 stageConfig: props.stageConfig,
                 psTeamsServiceLambda: psTeamsServiceLambda.lambdaFunction,
+                certificate: certificate,
             }
         );
 
