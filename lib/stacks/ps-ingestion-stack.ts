@@ -9,7 +9,7 @@ import { PsIngestionReplaysBucket } from "../infrastructure/s3/ps-ingestion-repl
 import { PsIngestionTeamsBucket } from "../infrastructure/s3/ps-ingestion-teams-bucket";
 import { StageConfig } from "../constants/stage-config";
 import { VGC_FORMAT } from "../constants/ps-constants";
-import { STATSUGIRI_EMAIL } from "../constants/alarm-constants";
+import { STATSUGIRI_EMAIL } from "../constants/statsugiri-constants";
 import { EmailSnsTopic } from "../infrastructure/sns/email-sns-topics";
 import { PsReplayExtractionLambdaEcrRepo } from "../infrastructure/ecr/ps-replay-extraction-lambda-ecr-repo";
 import { PsReplayTransformLambdaEcrRepo } from "../infrastructure/ecr/ps-replay-transform-lambda-ecr-repo";

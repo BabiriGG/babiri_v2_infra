@@ -9,12 +9,8 @@ import {
 } from "aws-cdk-lib/aws-iam";
 import { PsTeamsServiceLambdaEcrRepo } from "../infrastructure/ecr/ps-teams-service-lambda-ecr-repo";
 import { PsIngestionTeamsTable } from "../infrastructure/dynamodb/ps-ingestion-teams-table";
-import { PsTeamsServiceApiGateway } from "../infrastructure/apigateway/ps-teams-service-api-gateway";
+import { PsTeamsServiceRestApi } from "../infrastructure/rest-api/ps-teams-service-rest-api";
 import { PsTeamsServiceDashboard } from "../infrastructure/cloudwatch/ps-teams-service-dashboard";
-import {
-    Certificate,
-    CertificateValidation,
-} from "aws-cdk-lib/aws-certificatemanager";
 
 export interface PsTeamsServiceStackProps extends cdk.StackProps {
     stageConfig: StageConfig;
@@ -22,6 +18,9 @@ export interface PsTeamsServiceStackProps extends cdk.StackProps {
 }
 
 export class PsTeamsServiceStack extends cdk.Stack {
+    // Shared with Statsugiri API Gateway
+    public readonly psTeamsServiceApi: PsTeamsServiceRestApi;
+
     constructor(scope: cdk.App, id: string, props: PsTeamsServiceStackProps) {
         super(scope, id, props);
 
@@ -59,22 +58,12 @@ export class PsTeamsServiceStack extends cdk.Stack {
             }
         );
 
-        const certificate = new Certificate(
+        this.psTeamsServiceApi = new PsTeamsServiceRestApi(
             this,
-            `PsTeamsServiceCert-${props.stageConfig.stageName}`,
-            {
-                domainName: "*.statsugiri.gg",
-                validation: CertificateValidation.fromDns(),
-            }
-        );
-
-        const apiGateway = new PsTeamsServiceApiGateway(
-            this,
-            `PsTeamsServiceApiGateway-${props.stageConfig.stageName}`,
+            `PsTeamsServiceApi-${props.stageConfig.stageName}`,
             {
                 stageConfig: props.stageConfig,
                 psTeamsServiceLambda: psTeamsServiceLambda.lambdaFunction,
-                certificate: certificate,
             }
         );
 

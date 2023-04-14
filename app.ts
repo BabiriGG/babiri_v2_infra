@@ -13,6 +13,12 @@ import {
     PsTeamsServiceStack,
     PsTeamsServiceStackProps,
 } from "./lib/stacks/ps-teams-service-stack";
+import { LambdaRestApi } from "aws-cdk-lib/aws-apigateway";
+import {
+    StatsugiriApiGatewayStack,
+    StatsugiriApiGatewayStackProps,
+} from "./lib/stacks/statsugiri-api-gateway-stack";
+import { STATSUGIRI_GG_DOMAIN } from "./lib/constants/statsugiri-constants";
 
 export class StatsugiriInfrastructureApp extends cdk.App {
     public setupBeta() {
@@ -32,11 +38,20 @@ export class StatsugiriInfrastructureApp extends cdk.App {
     private createBetaStage() {
         let betaStacks = new Array<cdk.Stack>();
         const psIngestionStack = this.setupPsIngestionStack(BetaStageConfig);
+        const psTeamsServiceStack = this.setupPsTeamsServiceStack(
+            BetaStageConfig,
+            psIngestionStack.teamsTable
+        );
         betaStacks.push(psIngestionStack);
+        betaStacks.push(psTeamsServiceStack);
+
+        console.log(psTeamsServiceStack.psTeamsServiceApi);
+
         betaStacks.push(
-            this.setupPsTeamsServiceStack(
+            this.setupStatsugiriApiGatewayStack(
                 BetaStageConfig,
-                psIngestionStack.teamsTable
+                STATSUGIRI_GG_DOMAIN,
+                psTeamsServiceStack.psTeamsServiceApi.lambdaApi
             )
         );
     }
@@ -48,11 +63,18 @@ export class StatsugiriInfrastructureApp extends cdk.App {
     private createProdStage() {
         let prodStacks = new Array<cdk.Stack>();
         const psIngestionStack = this.setupPsIngestionStack(ProdStageConfig);
+        const psTeamsServiceStack = this.setupPsTeamsServiceStack(
+            ProdStageConfig,
+            psIngestionStack.teamsTable
+        );
         prodStacks.push(psIngestionStack);
+        prodStacks.push(psTeamsServiceStack);
+
         prodStacks.push(
-            this.setupPsTeamsServiceStack(
+            this.setupStatsugiriApiGatewayStack(
                 ProdStageConfig,
-                psIngestionStack.teamsTable
+                STATSUGIRI_GG_DOMAIN,
+                psTeamsServiceStack.psTeamsServiceApi.lambdaApi
             )
         );
     }
@@ -82,6 +104,24 @@ export class StatsugiriInfrastructureApp extends cdk.App {
             this,
             `PsTeamsServiceStack-${stageConfig.stageName}`,
             psTeamsServiceStackProps
+        );
+    }
+
+    private setupStatsugiriApiGatewayStack(
+        stageConfig: StageConfig,
+        domainName: string,
+        psTeamsServiceApi: LambdaRestApi
+    ) {
+        const statsugiriApiGatewayStackProps: StatsugiriApiGatewayStackProps = {
+            stageConfig: stageConfig,
+            domainName: domainName,
+            psTeamsServiceApi: psTeamsServiceApi,
+        };
+
+        return new StatsugiriApiGatewayStack(
+            this,
+            `StatsugiriApiGatewayStack-${stageConfig.stageName}`,
+            statsugiriApiGatewayStackProps
         );
     }
 }

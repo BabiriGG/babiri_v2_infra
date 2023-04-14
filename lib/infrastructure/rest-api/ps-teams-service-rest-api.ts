@@ -1,24 +1,14 @@
 import { Construct } from "constructs";
 import { StageConfig } from "../../constants";
-import {
-    BasePathMapping,
-    Deployment,
-    DomainName,
-    EndpointType,
-    LambdaRestApi,
-    SecurityPolicy,
-} from "aws-cdk-lib/aws-apigateway";
 import { IFunction } from "aws-cdk-lib/aws-lambda";
-import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
-import { ARecord, CnameRecord, HostedZone } from "aws-cdk-lib/aws-route53";
+import { Deployment, LambdaRestApi } from "aws-cdk-lib/aws-apigateway";
 
 export interface PsTeamsServiceApiGatewayProps {
     stageConfig: StageConfig;
     psTeamsServiceLambda: IFunction;
-    certificate: Certificate;
 }
 
-export class PsTeamsServiceApiGateway extends Construct {
+export class PsTeamsServiceRestApi extends Construct {
     readonly lambdaApi: LambdaRestApi;
 
     constructor(
@@ -33,40 +23,6 @@ export class PsTeamsServiceApiGateway extends Construct {
             deployOptions: {
                 stageName: props.stageConfig.stageName,
             },
-        });
-
-        const domain = new DomainName(
-            this,
-            `PsTeamsServiceDomainName-${props.stageConfig.stageName}`,
-            {
-                domainName: "api.statsugiri.gg",
-                certificate: props.certificate,
-                securityPolicy: SecurityPolicy.TLS_1_2,
-                endpointType: EndpointType.EDGE,
-            }
-        );
-        new BasePathMapping(
-            this,
-            `PsTeamsServiceBaseMapping-${props.stageConfig.stageName}`,
-            {
-                domainName: domain,
-                restApi: this.lambdaApi,
-            }
-        );
-
-        // TODO: Move this somewhere shared potentially
-        const hostedZone = new HostedZone(
-            this,
-            `PsTeamsServiceHostedZone-${props.stageConfig.stageName}`,
-            {
-                zoneName: "statsugiri.gg",
-            }
-        );
-
-        new CnameRecord(this, `PsTeamsService-${props.stageConfig.stageName}`, {
-            recordName: "custom",
-            zone: hostedZone,
-            domainName: domain.domainNameAliasDomainName,
         });
 
         const healthApiRoot = this.lambdaApi.root.addResource("health");
