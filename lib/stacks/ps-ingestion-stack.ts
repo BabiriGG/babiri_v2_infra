@@ -155,6 +155,7 @@ export class PsIngestionStack extends cdk.Stack {
             }
         );
 
+        // 10 PM UTC everyday (3 PM PST / 6 PM EST)
         const vgcIngestionEventBridge = new PsIngestionEventBridge(
             this,
             `VgcPsIngestionEventBridge-${props.stageConfig.stageName}`,
@@ -165,6 +166,7 @@ export class PsIngestionStack extends cdk.Stack {
             }
         );
 
+        // 10:15 PM UTC everyday (3:15 PM PST / 6:15 PM EST)
         const ouIngestionEventBridge = new PsIngestionEventBridge(
             this,
             `OuPsIngestionEventBridge-${props.stageConfig.stageName}`,
