@@ -25,15 +25,20 @@ export class PsTeamsServiceRestApi extends Construct {
             },
         });
 
-        const healthApiRoot = this.lambdaApi.root.addResource("health");
-        healthApiRoot.addMethod("GET"); // GET /health
+        const healthApiResource = this.lambdaApi.root.addResource("health");
+        healthApiResource.addMethod("GET"); // GET /health
 
-        const teamApiRoot = this.lambdaApi.root.addResource("team");
-        const getTeamResource = teamApiRoot.addResource("{team_id}");
+        const teamApiResource = this.lambdaApi.root.addResource("team");
+        const getTeamResource = teamApiResource.addResource("{team_id}");
         getTeamResource.addMethod("GET"); // GET /team/{team_id}
 
         const teamsApiRoot = this.lambdaApi.root.addResource("teams");
         const getTeamsFormatResource = teamsApiRoot.addResource("{format}");
+
+        const getTeamsTodayResource =
+            getTeamsFormatResource.addResource("today");
+        getTeamsTodayResource.addMethod("GET");
+
         const getTeamsDateResource =
             getTeamsFormatResource.addResource("{date}");
         getTeamsDateResource.addMethod("GET", undefined, {

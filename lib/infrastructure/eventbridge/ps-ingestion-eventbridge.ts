@@ -3,6 +3,8 @@ import { Schedule, Rule } from "aws-cdk-lib/aws-events";
 
 export interface PsIngestionEventBridgeProps {
     readonly stageName: string;
+    readonly cronHour: string;
+    readonly cronMinute: string;
 }
 
 export class PsIngestionEventBridge extends Construct {
@@ -19,10 +21,10 @@ export class PsIngestionEventBridge extends Construct {
             `PsIngestionEventBridge-${props.stageName}`,
             {
                 // Cron Expressions only available in UTC
-                // 8 PM UTC everyday (12 PM PST / 3 PM EST)
+                // 10 PM UTC everyday (3 PM PST / 6 PM EST)
                 schedule: Schedule.cron({
-                    minute: "0",
-                    hour: "20",
+                    minute: props.cronMinute,
+                    hour: props.cronHour,
                 }),
             }
         );

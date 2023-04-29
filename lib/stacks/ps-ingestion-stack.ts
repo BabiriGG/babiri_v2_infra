@@ -8,7 +8,7 @@ import { PsIngestionAlarms } from "../infrastructure/cloudwatch/ps-ingestion-ala
 import { PsIngestionReplaysBucket } from "../infrastructure/s3/ps-ingestion-replays-bucket";
 import { PsIngestionTeamsBucket } from "../infrastructure/s3/ps-ingestion-teams-bucket";
 import { StageConfig } from "../constants/stage-config";
-import { VGC_FORMAT } from "../constants/ps-constants";
+import { VGC_FORMAT, OU_FORMAT } from "../constants/ps-constants";
 import { STATSUGIRI_EMAIL } from "../constants/statsugiri-constants";
 import { EmailSnsTopic } from "../infrastructure/sns/email-sns-topics";
 import { PsReplayExtractionLambdaEcrRepo } from "../infrastructure/ecr/ps-replay-extraction-lambda-ecr-repo";
@@ -155,16 +155,36 @@ export class PsIngestionStack extends cdk.Stack {
             }
         );
 
-        const ingestionEventBridge = new PsIngestionEventBridge(
+        const vgcIngestionEventBridge = new PsIngestionEventBridge(
             this,
-            `PsIngestionEventBridge-${props.stageConfig.stageName}`,
-            { stageName: props.stageConfig.stageName }
+            `VgcPsIngestionEventBridge-${props.stageConfig.stageName}`,
+            {
+                stageName: props.stageConfig.stageName,
+                cronHour: "22",
+                cronMinute: "0",
+            }
+        );
+
+        const ouIngestionEventBridge = new PsIngestionEventBridge(
+            this,
+            `OuPsIngestionEventBridge-${props.stageConfig.stageName}`,
+            {
+                stageName: props.stageConfig.stageName,
+                cronHour: "22",
+                cronMinute: "15",
+            }
         );
 
         // Send format object to the targeted Lambda
-        ingestionEventBridge.eventRule.addTarget(
+        vgcIngestionEventBridge.eventRule.addTarget(
             new SfnStateMachine(ingestionStateMachine.stateMachine, {
                 input: RuleTargetInput.fromObject({ format: VGC_FORMAT }),
+            })
+        );
+
+        ouIngestionEventBridge.eventRule.addTarget(
+            new SfnStateMachine(ingestionStateMachine.stateMachine, {
+                input: RuleTargetInput.fromObject({ format: OU_FORMAT }),
             })
         );
 
