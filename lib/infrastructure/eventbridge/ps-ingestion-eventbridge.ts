@@ -16,17 +16,12 @@ export class PsIngestionEventBridge extends Construct {
     ) {
         super(scope, id);
 
-        this.eventRule = new Rule(
-            this,
-            `PsIngestionEventBridge-${props.stageName}`,
-            {
-                // Cron Expressions only available in UTC
-                // 10 PM UTC everyday (3 PM PST / 6 PM EST)
-                schedule: Schedule.cron({
-                    minute: props.cronMinute,
-                    hour: props.cronHour,
-                }),
-            }
-        );
+        this.eventRule = new Rule(this, id, {
+            // Cron Expressions only available in UTC
+            schedule: Schedule.cron({
+                minute: props.cronMinute,
+                hour: props.cronHour,
+            }),
+        });
     }
 }
