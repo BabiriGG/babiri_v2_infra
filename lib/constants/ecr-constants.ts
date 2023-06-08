@@ -6,11 +6,11 @@ export const NUM_USERS_TO_PULL_PROD = "100";
 
 export const PS_REPLAY_EXTRACTION_LAMBDA_ECR_REPO =
     "ps-replay-extraction-lambda";
-export const PS_REPLAY_EXTRACTION_LAMBDA_ECR_PROD_TAG = "9478bad";
+export const PS_REPLAY_EXTRACTION_LAMBDA_ECR_PROD_TAG = "8f8666e";
 export const PS_REPLAY_EXTRACTION_LAMBDA_ECR_DEV_TAG = "706da22";
 
 export const PS_REPLAY_TRANSFORM_LAMBDA_ECR_REPO = "ps-replay-transform-lambda";
-export const PS_REPLAY_TRANSFORM_LAMBDA_ECR_PROD_TAG = "894ef6b";
+export const PS_REPLAY_TRANSFORM_LAMBDA_ECR_PROD_TAG = "ae68f7d";
 export const PS_REPLAY_TRANSFORM_LAMBDA_ECR_DEV_TAG = "706da22";
 
 export const PS_TEAMS_DDB_WRITER_LAMBDA_ECR_REPO = "ps-teams-ddb-writer-lambda";

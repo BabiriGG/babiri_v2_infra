@@ -8,7 +8,11 @@ import { PsIngestionAlarms } from "../infrastructure/cloudwatch/ps-ingestion-ala
 import { PsIngestionReplaysBucket } from "../infrastructure/s3/ps-ingestion-replays-bucket";
 import { PsIngestionTeamsBucket } from "../infrastructure/s3/ps-ingestion-teams-bucket";
 import { StageConfig } from "../constants/stage-config";
-import { VGC_FORMAT, OU_FORMAT } from "../constants/ps-constants";
+import {
+    VGC_FORMAT,
+    VGC_REG_C_FORMAT,
+    OU_FORMAT,
+} from "../constants/ps-constants";
 import { STATSUGIRI_EMAIL } from "../constants/statsugiri-constants";
 import { EmailSnsTopic } from "../infrastructure/sns/email-sns-topics";
 import { PsReplayExtractionLambdaEcrRepo } from "../infrastructure/ecr/ps-replay-extraction-lambda-ecr-repo";
@@ -156,9 +160,9 @@ export class PsIngestionStack extends cdk.Stack {
         );
 
         // 10 PM UTC everyday (3 PM PST / 6 PM EST)
-        const vgcIngestionEventBridge = new PsIngestionEventBridge(
+        const vgcRegCIngestionEventBridge = new PsIngestionEventBridge(
             this,
-            `VgcPsIngestionEventBridge-${props.stageConfig.stageName}`,
+            `VgcRegCPsIngestionEventBridge-${props.stageConfig.stageName}`,
             {
                 stageName: props.stageConfig.stageName,
                 cronHour: "22",
@@ -177,8 +181,19 @@ export class PsIngestionStack extends cdk.Stack {
             }
         );
 
+        // 10:30 PM UTC everyday (3:30 PM PST / 6:30 PM EST)
+        const vgcRegDIngestionEventBridge = new PsIngestionEventBridge(
+            this,
+            `VgcRegDPsIngestionEventBridge-${props.stageConfig.stageName}`,
+            {
+                stageName: props.stageConfig.stageName,
+                cronHour: "22",
+                cronMinute: "30",
+            }
+        );
+
         // Send format object to the targeted Lambda
-        vgcIngestionEventBridge.eventRule.addTarget(
+        vgcRegDIngestionEventBridge.eventRule.addTarget(
             new SfnStateMachine(ingestionStateMachine.stateMachine, {
                 input: RuleTargetInput.fromObject({ format: VGC_FORMAT }),
             })
@@ -187,6 +202,12 @@ export class PsIngestionStack extends cdk.Stack {
         ouIngestionEventBridge.eventRule.addTarget(
             new SfnStateMachine(ingestionStateMachine.stateMachine, {
                 input: RuleTargetInput.fromObject({ format: OU_FORMAT }),
+            })
+        );
+
+        vgcRegCIngestionEventBridge.eventRule.addTarget(
+            new SfnStateMachine(ingestionStateMachine.stateMachine, {
+                input: RuleTargetInput.fromObject({ format: VGC_REG_C_FORMAT }),
             })
         );
 
