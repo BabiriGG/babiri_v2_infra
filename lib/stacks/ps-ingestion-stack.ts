@@ -1,33 +1,29 @@
 import * as cdk from "aws-cdk-lib";
+import { SnsAction } from "aws-cdk-lib/aws-cloudwatch-actions";
 import { RuleTargetInput } from "aws-cdk-lib/aws-events";
 import { SfnStateMachine } from "aws-cdk-lib/aws-events-targets";
-import { SnsAction } from "aws-cdk-lib/aws-cloudwatch-actions";
-import { PsReplayExtractionLambda } from "../infrastructure/lambda/ps-replay-extraction-lambda";
-import { PsIngestionEventBridge } from "../infrastructure/eventbridge/ps-ingestion-eventbridge";
-import { PsIngestionAlarms } from "../infrastructure/cloudwatch/ps-ingestion-alarms";
-import { PsIngestionReplaysBucket } from "../infrastructure/s3/ps-ingestion-replays-bucket";
-import { PsIngestionTeamsBucket } from "../infrastructure/s3/ps-ingestion-teams-bucket";
-import { StageConfig } from "../constants/stage-config";
 import {
-    VGC_FORMAT,
-    VGC_REG_C_FORMAT,
-    OU_FORMAT,
-} from "../constants/ps-constants";
-import { STATSUGIRI_EMAIL } from "../constants/statsugiri-constants";
-import { EmailSnsTopic } from "../infrastructure/sns/email-sns-topics";
-import { PsReplayExtractionLambdaEcrRepo } from "../infrastructure/ecr/ps-replay-extraction-lambda-ecr-repo";
-import { PsReplayTransformLambdaEcrRepo } from "../infrastructure/ecr/ps-replay-transform-lambda-ecr-repo";
-import { PsReplayTransformLambda } from "../infrastructure/lambda/ps-replay-transform-lambda";
-import { PsIngestionStateMachine } from "../infrastructure/stepfunctions/ps-ingestion-state-machine";
-import {
-    PolicyStatement,
     Effect,
+    PolicyStatement,
     Role,
     ServicePrincipal,
 } from "aws-cdk-lib/aws-iam";
+import { OU_FORMAT, VGC_FORMAT } from "../constants/ps-constants";
+import { StageConfig } from "../constants/stage-config";
+import { STATSUGIRI_EMAIL } from "../constants/statsugiri-constants";
+import { PsIngestionAlarms } from "../infrastructure/cloudwatch/ps-ingestion-alarms";
 import { PsIngestionTeamsTable } from "../infrastructure/dynamodb/ps-ingestion-teams-table";
-import { PsTeamsDdbWriterLambda } from "../infrastructure/lambda/ps-teams-ddb-writer-lambda";
+import { PsReplayExtractionLambdaEcrRepo } from "../infrastructure/ecr/ps-replay-extraction-lambda-ecr-repo";
+import { PsReplayTransformLambdaEcrRepo } from "../infrastructure/ecr/ps-replay-transform-lambda-ecr-repo";
 import { PsTeamsDdbWriterLambdaEcrRepo } from "../infrastructure/ecr/ps-teams-ddb-writer-lambda-ecr-repo";
+import { PsIngestionEventBridge } from "../infrastructure/eventbridge/ps-ingestion-eventbridge";
+import { PsReplayExtractionLambda } from "../infrastructure/lambda/ps-replay-extraction-lambda";
+import { PsReplayTransformLambda } from "../infrastructure/lambda/ps-replay-transform-lambda";
+import { PsTeamsDdbWriterLambda } from "../infrastructure/lambda/ps-teams-ddb-writer-lambda";
+import { PsIngestionReplaysBucket } from "../infrastructure/s3/ps-ingestion-replays-bucket";
+import { PsIngestionTeamsBucket } from "../infrastructure/s3/ps-ingestion-teams-bucket";
+import { EmailSnsTopic } from "../infrastructure/sns/email-sns-topics";
+import { PsIngestionStateMachine } from "../infrastructure/stepfunctions/ps-ingestion-state-machine";
 
 export interface PsIngestionStackProps extends cdk.StackProps {
     stageConfig: StageConfig;
@@ -159,10 +155,10 @@ export class PsIngestionStack extends cdk.Stack {
             }
         );
 
-        // 10 PM UTC everyday (3 PM PST / 6 PM EST)
-        const vgcRegCIngestionEventBridge = new PsIngestionEventBridge(
+        // 10:00 PM UTC everyday (3:00 PM PST / 6:00 PM EST)
+        const ouIngestionEventBridge = new PsIngestionEventBridge(
             this,
-            `VgcRegCPsIngestionEventBridge-${props.stageConfig.stageName}`,
+            `OuPsIngestionEventBridge-${props.stageConfig.stageName}`,
             {
                 stageName: props.stageConfig.stageName,
                 cronHour: "22",
@@ -171,9 +167,9 @@ export class PsIngestionStack extends cdk.Stack {
         );
 
         // 10:15 PM UTC everyday (3:15 PM PST / 6:15 PM EST)
-        const ouIngestionEventBridge = new PsIngestionEventBridge(
+        const vgcRegDIngestionEventBridge = new PsIngestionEventBridge(
             this,
-            `OuPsIngestionEventBridge-${props.stageConfig.stageName}`,
+            `VgcRegDPsIngestionEventBridge-${props.stageConfig.stageName}`,
             {
                 stageName: props.stageConfig.stageName,
                 cronHour: "22",
@@ -181,33 +177,18 @@ export class PsIngestionStack extends cdk.Stack {
             }
         );
 
-        // 10:30 PM UTC everyday (3:30 PM PST / 6:30 PM EST)
-        const vgcRegDIngestionEventBridge = new PsIngestionEventBridge(
-            this,
-            `VgcRegDPsIngestionEventBridge-${props.stageConfig.stageName}`,
-            {
-                stageName: props.stageConfig.stageName,
-                cronHour: "22",
-                cronMinute: "30",
-            }
-        );
-
         // Send format object to the targeted Lambda
         vgcRegDIngestionEventBridge.eventRule.addTarget(
             new SfnStateMachine(ingestionStateMachine.stateMachine, {
-                input: RuleTargetInput.fromObject({ format: VGC_FORMAT }),
+                input: RuleTargetInput.fromObject({
+                    format: VGC_FORMAT,
+                }),
             })
         );
 
         ouIngestionEventBridge.eventRule.addTarget(
             new SfnStateMachine(ingestionStateMachine.stateMachine, {
                 input: RuleTargetInput.fromObject({ format: OU_FORMAT }),
-            })
-        );
-
-        vgcRegCIngestionEventBridge.eventRule.addTarget(
-            new SfnStateMachine(ingestionStateMachine.stateMachine, {
-                input: RuleTargetInput.fromObject({ format: VGC_REG_C_FORMAT }),
             })
         );
 
