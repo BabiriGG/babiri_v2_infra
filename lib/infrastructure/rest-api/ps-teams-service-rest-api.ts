@@ -1,7 +1,7 @@
+import { Deployment, LambdaRestApi } from "aws-cdk-lib/aws-apigateway";
+import { IFunction } from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import { StageConfig } from "../../constants";
-import { IFunction } from "aws-cdk-lib/aws-lambda";
-import { Deployment, LambdaRestApi } from "aws-cdk-lib/aws-apigateway";
 
 export interface PsTeamsServiceApiGatewayProps {
     stageConfig: StageConfig;
@@ -22,6 +22,12 @@ export class PsTeamsServiceRestApi extends Construct {
             proxy: false,
             deployOptions: {
                 stageName: props.stageConfig.stageName,
+                methodOptions: {
+                    "/*/*": {
+                        throttlingBurstLimit: 100,
+                        throttlingRateLimit: 200,
+                    },
+                },
             },
         });
 
